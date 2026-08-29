@@ -343,7 +343,24 @@ async function bootstrap() {
   const loaded = load();
 
   if (!loaded) {
-    const baselineRaw = await loadBaselineFile();
+    let baselineRaw;
+    try {
+      baselineRaw = await loadBaselineFile();
+    } catch {
+      baselineRaw = [
+        {
+          id: "sample-goblin",
+          name: "Sample Goblin",
+          initiative: 12,
+          hp: { current: 7, max: 7 },
+          conditions: [],
+          spellSlots: [],
+          abilities: [],
+          sourceUrl: "",
+          notes: "Fallback baseline for local file:// usage.",
+        },
+      ];
+    }
     state.baseline = normalizeCombatants(baselineRaw);
     state.active = JSON.parse(JSON.stringify(state.baseline));
     state.meta = { round: 1, turnIndex: 0 };
