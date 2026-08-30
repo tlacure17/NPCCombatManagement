@@ -33,127 +33,72 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
-function renderStatBlock(c) {
-  const ab = (key) => `
-    <div>
-      <label>${key.toUpperCase()}</label>
-      <input type="number" data-id="${c.id}" data-field="${key}.score" value="${c[key]?.score || 10}" style="width:40px">
-      <div>Mod: ${(c[key]?.mod || 0) >= 0 ? '+' : ''}${c[key]?.mod || 0}</div>
-      <input type="number" placeholder="save" data-id="${c.id}" data-field="${key}.save" value="${c[key]?.save || 0}" style="width:40px">
-    </div>`;
+function parseSpellText(raw) {
+  if (!raw || !raw.trim()) {
+    return {
+      level: "",
+      castingTime: "",
+      range: "",
+      components: "",
+      duration: "",
+      school: "",
+      attackSave: "",
+      damageEffect: "",
+      description: ""
+    };
+  }
 
-  const commaField = (label, field) => `
-    <label>${label}</label>
-    <input type="text" data-id="${c.id}" data-field="${field}" value="${escapeHtml((c[field]||[]).join(', '))}" style="width:100%"><br>`;
-
-  const textBlock = (label, field) => {
-    const rows = (c[field]||[]).map((e,i) => `
-      <div class="entry-row">
-        <input type="text" placeholder="name" data-id="${c.id}" data-field="${field}[${i}].name" value="${escapeHtml(e.name||'')}" style="width:120px">
-        <textarea data-id="${c.id}" data-field="${field}[${i}].text">${escapeHtml(e.text||'')}</textarea>
-        <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="${field}" data-index="${i}">✕</button>
-      </div>`).join('');
-    return `<h4>${label}</h4><div class="entry-list">${rows}</div><button type="button" data-id="${c.id}" data-action="add-entry" data-field="${field}">+ Add</button>`;
+  const lines = raw.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+  const knownLabels = ['level', 'casting time', 'range/area', 'components', 'duration', 'school', 'attack/save', 'damage/effect'];
+  
+  const result = {
+    level: "",
+    castingTime: "",
+    range: "",
+    components: "",
+    duration: "",
+    school: "",
+    attackSave: "",
+    damageEffect: "",
+    description: ""
   };
 
-  const slotGrid = Object.entries(c.spellcasting?.spellSlots || {}).map(([lvl,s],i) => `
-    <div>
-      <label>${i+1}</label>
-      <button type="button" data-id="${c.id}" data-action="slot-use" data-level="${lvl}">-</button>
-      <span>${s.used}/${s.total}</span>
-      <button type="button" data-id="${c.id}" data-action="slot-restore" data-level="${lvl}">+</button>
-    </div>`).join('');
+  let i = 0;
+  let descriptionStart = -1;
 
-  const resourceList = (label, field, resetAction) => {
-    const rows = (c[field]||[]).map((r,i) => `
-      <div class="entry-row">
-        <span>${escapeHtml(r.name)}</span>
-        <button type="button" data-id="${c.id}" data-action="res-use" data-field="${field}" data-index="${i}">-</button>
-        <span>${r.used}/${r.max}</span>
-        <button type="button" data-id="${c.id}" data-action="res-restore" data-field="${field}" data-index="${i}">+</button>
-        <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="${field}" data-index="${i}">✕</button>
-      </div>`).join('');
-    return `<h4>${label} <button type="button" data-id="${c.id}" data-action="${resetAction}">Reset</button></h4>
-      <div class="entry-list">${rows}</div>
-      <input type="text" placeholder="name" id="new-${field}-name-${c.id}">
-      <input type="number" placeholder="max" id="new-${field}-max-${c.id}" style="width:50px">
-      <button type="button" data-id="${c.id}" data-action="add-resource" data-field="${field}">+ Add</button>`;
-  };
+  while (i < lines.length) {
+    const line = lines[i].toLowerCase();
+    let found = false;
 
-  return `
-    <h4>Abilities</h4>
-    <div class="ability-grid">${['str','dex','con','int','wis','cha'].map(ab).join('')}</div>
+    for (const label of knownLabels) {
+      if (line === label) {
+        const value = lines[i + 1] || "";
+        if (label === 'level') result.level = value;
+        else if (label === 'casting time') result.castingTime = value;
+        else if (label === 'range/area') result.range = value;
+        else if (label === 'components') result.components = value;
+        else if (label === 'duration') result.duration = value;
+        else if (label === 'school') result.school = value;
+        else if (label === 'attack/save') result.attackSave = value;
+        else if (label === 'damage/effect') result.damageEffect = value;
+        i += 2;
+        found = true;
+        break;
+      }
+    }
 
-    <h4>Defenses</h4>
-    ${commaField('Resistances','resistances')}
-    ${commaField('Immunities','immunities')}
-    ${commaField('Vulnerabilities','vulnerabilities')}
-    ${commaField('Condition Immunities','conditionImmunities')}
+    if (!found) {
+      descriptionStart = i;
+      break;
+    }
+  }
 
-    <h4>Utility</h4>
-    <label>Passive Perception</label>
-    <input type="number" data-id="${c.id}" data-field="passivePerception" value="${c.passivePerception || 10}" style="width:50px"><br>
-    <label>Senses</label><input type="text" data-id="${c.id}" data-field="senses" value="${escapeHtml(c.senses || '')}" style="width:100%"><br>
-    <label>Languages</label><input type="text" data-id="${c.id}" data-field="languages" value="${escapeHtml((c.languages||[]).join(', '))}" style="width:100%"><br>
-    <label>Skills</label><input type="text" data-id="${c.id}" data-field="skills" value="${escapeHtml(c.skills || '')}" style="width:100%"><br>
+  if (descriptionStart >= 0) {
+    result.description = lines.slice(descriptionStart).join('\n');
+  }
 
-    ${textBlock('Traits','traits')}
-    ${textBlock('Actions','actions')}
-    ${textBlock('Bonus Actions','bonusActions')}
-    ${textBlock('Reactions','reactions')}
-    <h4>Legendary Actions (pool: <input type="number" data-id="${c.id}" data-field="legendaryActionCount" value="${c.legendaryActionCount || 0}" style="width:40px">)</h4>
-    ${(c.legendaryActions||[]).map((e,i)=>`
-      <div class="entry-row">
-        <input type="text" placeholder="name" data-id="${c.id}" data-field="legendaryActions[${i}].name" value="${escapeHtml(e.name||'')}"> 
-        Cost:<input type="number" data-id="${c.id}" data-field="legendaryActions[${i}].cost" value="${e.cost||1}" style="width:35px">
-        <textarea data-id="${c.id}" data-field="legendaryActions[${i}].text">${escapeHtml(e.text||'')}</textarea>
-        <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="legendaryActions" data-index="${i}">✕</button>
-      </div>`).join('')}
-    <button type="button" data-id="${c.id}" data-action="add-entry" data-field="legendaryActions">+ Add</button>
-
-    <h4>Spellcasting</h4>
-    Ability:<select data-id="${c.id}" data-field="spellcasting.spellcastingAbility">
-      ${['none','int','wis','cha'].map(a=>`<option value="${a}"${c.spellcasting?.spellcastingAbility===a?' selected':''}>${a.toUpperCase()}</option>`).join('')}
-    </select>
-    DC:<input type="number" data-id="${c.id}" data-field="spellcasting.spellSaveDC" value="${c.spellcasting?.spellSaveDC || 0}" style="width:45px">
-    Atk:<input type="number" data-id="${c.id}" data-field="spellcasting.spellAttackBonus" value="${c.spellcasting?.spellAttackBonus || 0}" style="width:45px"><br>
-    <div class="slot-grid">${slotGrid}</div>
-    
-    <h4>Spells</h4>
-    <div id="spell-list-${c.id}" class="entry-list">
-      ${(c.spellcasting?.spells || []).map((s,i) => {
-        const levelStr = s.level === 0 ? 'C' : s.level;
-        return `<div class="entry-row">
-          <button type="button" data-action="cast-spell" data-id="${c.id}" data-index="${i}" style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;">[${levelStr}] ${escapeHtml(s.name)}</button>
-          <button type="button" data-action="remove-spell" data-id="${c.id}" data-index="${i}" class="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-xs">✕</button>
-        </div>`;
-      }).join('')}
-    </div>
-    <div style="display:flex;gap:4px;margin-bottom:4px;">
-      <input type="text" placeholder="name" id="new-spell-name-${c.id}" style="flex:1;">
-      <input type="number" placeholder="level" id="new-spell-level-${c.id}" min="0" max="9" value="0" style="width:50px;">
-      <input type="text" placeholder="url" id="new-spell-url-${c.id}" style="flex:1;">
-      <button type="button" data-action="add-spell" data-id="${c.id}" class="px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-xs">+ Add</button>
-    </div>
-
-    ${resourceList('Short-Rest Uses','perRestUses','short-rest')}
-    ${resourceList('Long-Rest Uses','perDayUses','long-rest')}
-
-    <h4>Custom Counters</h4>
-    ${(c.customCounters||[]).map((r,i)=>`
-      <div class="entry-row">
-        <input type="text" placeholder="name" data-id="${c.id}" data-field="customCounters[${i}].name" value="${escapeHtml(r.name)}">
-        <button type="button" data-id="${c.id}" data-action="counter-dec" data-index="${i}">-</button>
-        <span>${r.value}/${r.max}</span>
-        <button type="button" data-id="${c.id}" data-action="counter-inc" data-index="${i}">+</button>
-        <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="customCounters" data-index="${i}">✕</button>
-      </div>`).join('')}
-    <input type="text" placeholder="name" id="new-counter-name-${c.id}">
-    <input type="number" placeholder="max" id="new-counter-max-${c.id}" style="width:50px">
-    <button type="button" data-id="${c.id}" data-action="add-counter">+ Add Counter</button>
-  `;
+  return result;
 }
-
 
 function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -220,14 +165,25 @@ function normalizeCombatants(items) {
       reactions: Array.isArray(item.reactions) ? item.reactions : [],
       legendaryActionCount: item.legendaryActionCount || 3,
       legendaryActions: Array.isArray(item.legendaryActions) ? item.legendaryActions : [],
-      spellcasting: item.spellcasting || {
-        spellcastingAbility: 'none',
-        spellSaveDC: 0,
-        spellAttackBonus: 0,
-        cantrips: "",
-        spellSlots: {},
-        spells: []
-      },
+      spellcasting: (() => {
+        const sc = item.spellcasting || {
+          spellcastingAbility: 'none',
+          spellSaveDC: 0,
+          spellAttackBonus: 0,
+          cantrips: "",
+          spellSlots: {},
+          spells: []
+        };
+        // Migrate old url-based spells to rawText-based
+        if (Array.isArray(sc.spells)) {
+          sc.spells = sc.spells.map(s => ({
+            name: s.name || "",
+            level: s.level || 0,
+            rawText: s.rawText || s.url || ""
+          }));
+        }
+        return sc;
+      })(),
       perRestUses: Array.isArray(item.perRestUses) ? item.perRestUses : [],
       perDayUses: Array.isArray(item.perDayUses) ? item.perDayUses : [],
       customCounters: Array.isArray(item.customCounters) ? item.customCounters : []
@@ -344,9 +300,9 @@ function render() {
           <div style="display:flex;gap:2px;margin-bottom:4px;flex-wrap:wrap;">
             <input type="text" placeholder="name" id="new-spell-name-${c.id}" style="flex:0.8;min-width:60px;">
             <input type="number" placeholder="lvl" id="new-spell-level-${c.id}" min="0" max="9" value="0" style="width:40px;">
-            <input type="text" placeholder="url" id="new-spell-url-${c.id}" style="flex:1;min-width:60px;">
             <button type="button" data-action="add-spell" data-id="${c.id}" class="px-1 rounded bg-blue-600 hover:bg-blue-500 text-xs">+</button>
           </div>
+          <textarea placeholder="Paste spell text" id="new-spell-rawtext-${c.id}" rows="3" style="width:100%;font-family:monospace;font-size:0.8em;resize:vertical;"></textarea>
         </div>
       </div>
     `;
@@ -548,17 +504,17 @@ function wireEvents() {
     if (action === "add-spell") {
       const nameInput = document.getElementById(`new-spell-name-${id}`);
       const levelInput = document.getElementById(`new-spell-level-${id}`);
-      const urlInput = document.getElementById(`new-spell-url-${id}`);
-      if (nameInput && levelInput && urlInput) {
+      const rawTextInput = document.getElementById(`new-spell-rawtext-${id}`);
+      if (nameInput && levelInput && rawTextInput) {
         const name = nameInput.value.trim();
         const level = Number(levelInput.value);
-        const url = urlInput.value.trim();
+        const rawText = rawTextInput.value.trim();
         if (name && level >= 0 && level <= 9) {
           if (!c.spellcasting.spells) c.spellcasting.spells = [];
-          c.spellcasting.spells.push({name, level, url});
+          c.spellcasting.spells.push({name, level, rawText});
           nameInput.value = '';
           levelInput.value = '0';
-          urlInput.value = '';
+          rawTextInput.value = '';
         }
       }
     } else if (action === "remove-spell") {
@@ -790,23 +746,23 @@ function wireEvents() {
 
 }
 
-async function showSpellModal(combatant, spell) {
-  let spellContent = "Click to open spell description (external link)";
+function showSpellModal(combatant, spell) {
+  const parsed = parseSpellText(spell.rawText || "");
   
-  if (spell.url) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    
-    try {
-      const res = await fetch(spell.url, { signal: controller.signal });
-      clearTimeout(timeoutId);
-      if (res.ok) {
-        spellContent = await res.text();
-      }
-    } catch (err) {
-      clearTimeout(timeoutId);
-    }
-  }
+  const metaFields = [
+    {label: "Level", value: parsed.level},
+    {label: "Casting Time", value: parsed.castingTime},
+    {label: "Range", value: parsed.range},
+    {label: "Components", value: parsed.components},
+    {label: "Duration", value: parsed.duration},
+    {label: "School", value: parsed.school},
+    {label: "Attack/Save", value: parsed.attackSave},
+    {label: "Damage", value: parsed.damageEffect}
+  ].filter(f => f.value);
+
+  const descriptionHtml = parsed.description 
+    ? parsed.description.split('\n\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')
+    : "No description provided.";
 
   const maxSpellLevel = spell.level === 0 ? 0 : 9;
   const spellLevelOptions = Array.from({length: maxSpellLevel - spell.level + 1}, (_, i) => spell.level + i)
@@ -820,8 +776,12 @@ async function showSpellModal(combatant, spell) {
     <div style="background:#1e293b;border:1px solid #64748b;border-radius:8px;max-width:600px;max-height:80vh;overflow-y:auto;padding:20px;color:#e2e8f0;">
       <h2 style="margin-top:0;color:#fff;">${escapeHtml(spell.name)}</h2>
       
-      <div style="background:#0f172a;padding:10px;border-radius:4px;margin:10px 0;max-height:300px;overflow-y:auto;border:1px solid #334155;">
-        ${spell.url ? `<a href="${escapeHtml(spell.url)}" target="_blank" rel="noreferrer" style="color:#60a5fa;text-decoration:underline;">Click to open spell description (external link)</a><hr style="border:none;border-top:1px solid #334155;margin:8px 0;"><pre style="white-space:pre-wrap;word-wrap:break-word;margin:0;">${spellContent}</pre>` : spellContent}
+      <div class="spell-meta" style="display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;margin-bottom:8px;font-size:0.85em;">
+        ${metaFields.map(f => `<span><b>${escapeHtml(f.label)}:</b> ${escapeHtml(f.value)}</span>`).join('')}
+      </div>
+      
+      <div class="spell-desc" style="font-size:0.9em;line-height:1.5;background:#0f172a;padding:10px;border-radius:4px;margin:10px 0;border:1px solid #334155;max-height:300px;overflow-y:auto;">
+        ${descriptionHtml}
       </div>
       
       ${spell.level > 0 ? `
