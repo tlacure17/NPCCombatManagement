@@ -118,7 +118,23 @@ function renderStatBlock(c) {
     DC:<input type="number" data-id="${c.id}" data-field="spellcasting.spellSaveDC" value="${c.spellcasting?.spellSaveDC || 0}" style="width:45px">
     Atk:<input type="number" data-id="${c.id}" data-field="spellcasting.spellAttackBonus" value="${c.spellcasting?.spellAttackBonus || 0}" style="width:45px"><br>
     <div class="slot-grid">${slotGrid}</div>
-    <label>Cantrips</label><textarea data-id="${c.id}" data-field="spellcasting.cantrips">${escapeHtml(c.spellcasting?.cantrips || '')}</textarea><br>
+    
+    <h4>Spells</h4>
+    <div id="spell-list-${c.id}" class="entry-list">
+      ${(c.spellcasting?.spells || []).map((s,i) => {
+        const levelStr = s.level === 0 ? 'C' : s.level;
+        return `<div class="entry-row">
+          <button type="button" data-action="cast-spell" data-id="${c.id}" data-index="${i}" class="px-2 py-1 rounded bg-indigo-700 hover:bg-indigo-600 text-xs">[${levelStr}] ${escapeHtml(s.name)}</button>
+          <button type="button" data-action="remove-spell" data-id="${c.id}" data-index="${i}" class="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-xs">✕</button>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;gap:4px;margin-bottom:4px;">
+      <input type="text" placeholder="name" id="new-spell-name-${c.id}" style="flex:1;">
+      <input type="number" placeholder="level" id="new-spell-level-${c.id}" min="0" max="9" value="0" style="width:50px;">
+      <input type="text" placeholder="url" id="new-spell-url-${c.id}" style="flex:1;">
+      <button type="button" data-action="add-spell" data-id="${c.id}" class="px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-xs">+ Add</button>
+    </div>
 
     ${resourceList('Short-Rest Uses','perRestUses','short-rest')}
     ${resourceList('Long-Rest Uses','perDayUses','long-rest')}
@@ -178,6 +194,7 @@ function normalizeCombatants(items) {
         current: Number(item.hp?.current ?? item.hp?.max ?? 1),
         max: Number(item.hp?.max ?? 1),
       },
+      tempHp: Number(item.tempHp || 0),
       conditions: Array.isArray(item.conditions) ? item.conditions : [],
       spellSlots: Array.isArray(item.spellSlots) ? item.spellSlots : [],
       abilities: Array.isArray(item.abilities) ? item.abilities : [],
@@ -208,7 +225,8 @@ function normalizeCombatants(items) {
         spellSaveDC: 0,
         spellAttackBonus: 0,
         cantrips: "",
-        spellSlots: {}
+        spellSlots: {},
+        spells: []
       },
       perRestUses: Array.isArray(item.perRestUses) ? item.perRestUses : [],
       perDayUses: Array.isArray(item.perDayUses) ? item.perDayUses : [],
@@ -255,8 +273,13 @@ function render() {
 
       <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
         <label class="space-y-1">
-          <span class="text-slate-400">HP</span>
-          <input data-action="set-hp" data-id="${c.id}" type="text" value="${c.hp.current}/${c.hp.max}" class="w-full px-2 py-1 rounded bg-slate-800 border border-slate-700" />
+          <span class="text-slate-400">HP: ${c.hp.current}${c.tempHp > 0 ? ` (+${c.tempHp} temp)` : ''}</span>
+          <div class="flex gap-1 items-center">
+            <input id="hp-input-${c.id}" type="number" value="1" placeholder="Amount" class="w-16 px-2 py-1 rounded bg-slate-800 border border-slate-700" />
+            <button data-action="damage-custom" data-id="${c.id}" class="px-2 py-1 rounded bg-rose-700 hover:bg-rose-600 text-xs flex-1">Damage</button>
+            <button data-action="heal-custom" data-id="${c.id}" class="px-2 py-1 rounded bg-emerald-700 hover:bg-emerald-600 text-xs flex-1">Heal</button>
+            <button data-action="temp-hp" data-id="${c.id}" class="px-2 py-1 rounded bg-blue-700 hover:bg-blue-600 text-xs flex-1">Temp</button>
+          </div>
         </label>
 
         <label class="space-y-1 md:col-span-2">
@@ -354,6 +377,7 @@ function wireEvents() {
       name,
       initiative,
       hp: { current: hpMax, max: hpMax },
+      tempHp: 0,
       conditions: [],
       spellSlots: [],
       abilities: [],
@@ -384,7 +408,8 @@ function wireEvents() {
         spellSaveDC: 0,
         spellAttackBonus: 0,
         cantrips: "",
-        spellSlots: {}
+        spellSlots: {},
+        spells: []
       },
       perRestUses: [],
       perDayUses: [],
@@ -462,11 +487,11 @@ function wireEvents() {
   els.list.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
-    const action = target.dataset.action;
-    const id = target.dataset.id;
-
-    // Toggle stat block
+    
+    // Toggle stat block - only on the button itself
     if (target.classList.contains("toggle-stat-block")) {
+      event.stopPropagation();
+      const id = target.dataset.id;
       const statBlock = document.getElementById(`sb-${id}`);
       if (statBlock) {
         statBlock.classList.toggle("open");
@@ -474,6 +499,14 @@ function wireEvents() {
       }
       return;
     }
+
+    // Prevent actions from bubbling up from within the stat block
+    if (target.closest(".stat-block")) {
+      return;
+    }
+
+    const action = target.dataset.action;
+    const id = target.dataset.id;
 
     if (!action || !id) return;
 
@@ -486,6 +519,24 @@ function wireEvents() {
       c.hp.current = Math.max(0, c.hp.current - 1);
     } else if (action === "heal") {
       c.hp.current = Math.min(c.hp.max, c.hp.current + 1);
+    } else if (action === "damage-custom") {
+      const input = document.getElementById(`hp-input-${id}`);
+      const amount = Number(input?.value || 1);
+      let remaining = amount;
+      if (c.tempHp > 0) {
+        const tempDamage = Math.min(c.tempHp, remaining);
+        c.tempHp -= tempDamage;
+        remaining -= tempDamage;
+      }
+      c.hp.current = Math.max(0, c.hp.current - remaining);
+    } else if (action === "heal-custom") {
+      const input = document.getElementById(`hp-input-${id}`);
+      const amount = Number(input?.value || 1);
+      c.hp.current = Math.min(c.hp.max, c.hp.current + amount);
+    } else if (action === "temp-hp") {
+      const input = document.getElementById(`hp-input-${id}`);
+      const amount = Number(input?.value || 0);
+      c.tempHp = Math.max(0, amount);
     } else if (action === "remove") {
       state.active.splice(found.idx, 1);
       clampTurnIndex();
@@ -498,6 +549,34 @@ function wireEvents() {
       const index = Number(target.dataset.index);
       if (c[field] && Array.isArray(c[field])) {
         c[field].splice(index, 1);
+      }
+    } else if (action === "add-spell") {
+      const nameInput = document.getElementById(`new-spell-name-${id}`);
+      const levelInput = document.getElementById(`new-spell-level-${id}`);
+      const urlInput = document.getElementById(`new-spell-url-${id}`);
+      if (nameInput && levelInput && urlInput) {
+        const name = nameInput.value.trim();
+        const level = Number(levelInput.value);
+        const url = urlInput.value.trim();
+        if (name && level >= 0 && level <= 9) {
+          if (!c.spellcasting.spells) c.spellcasting.spells = [];
+          c.spellcasting.spells.push({name, level, url});
+          nameInput.value = '';
+          levelInput.value = '0';
+          urlInput.value = '';
+        }
+      }
+    } else if (action === "remove-spell") {
+      const index = Number(target.dataset.index);
+      if (c.spellcasting?.spells && Array.isArray(c.spellcasting.spells)) {
+        c.spellcasting.spells.splice(index, 1);
+      }
+    } else if (action === "cast-spell") {
+      const index = Number(target.dataset.index);
+      const spell = c.spellcasting?.spells?.[index];
+      if (spell) {
+        showSpellModal(c, spell);
+        return;
       }
     } else if (action === "slot-use") {
       const level = target.dataset.level;
@@ -668,6 +747,88 @@ function wireEvents() {
   });
 
 }
+
+async function showSpellModal(combatant, spell) {
+  let spellContent = "Loading spell details...";
+  
+  if (spell.url) {
+    try {
+      const res = await fetch(spell.url);
+      if (res.ok) {
+        spellContent = await res.text();
+      } else {
+        spellContent = `<a href="${escapeHtml(spell.url)}" target="_blank" rel="noreferrer">Click to view spell details</a>`;
+      }
+    } catch (err) {
+      spellContent = `<a href="${escapeHtml(spell.url)}" target="_blank" rel="noreferrer">Click to view spell details (fetch failed)</a>`;
+    }
+  }
+
+  const maxSpellLevel = spell.level === 0 ? 0 : 9;
+  const spellLevelOptions = Array.from({length: maxSpellLevel - spell.level + 1}, (_, i) => spell.level + i)
+    .map(lvl => `<option value="${lvl}"${lvl === spell.level ? ' selected' : ''}>${lvl === 0 ? 'Cantrip' : `Level ${lvl}`}</option>`)
+    .join('');
+
+  const modal = document.createElement('div');
+  modal.id = 'spell-modal';
+  modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;z-index:9999;';
+  modal.innerHTML = `
+    <div style="background:#1e293b;border:1px solid #64748b;border-radius:8px;max-width:600px;max-height:80vh;overflow-y:auto;padding:20px;color:#e2e8f0;">
+      <h2 style="margin-top:0;color:#fff;">${escapeHtml(spell.name)}</h2>
+      
+      <div style="background:#0f172a;padding:10px;border-radius:4px;margin:10px 0;max-height:300px;overflow-y:auto;border:1px solid #334155;">
+        ${spellContent}
+      </div>
+      
+      ${spell.level > 0 ? `
+        <div style="margin:10px 0;">
+          <label style="display:block;margin-bottom:5px;">Cast at level:</label>
+          <select id="spell-level-select" style="padding:5px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:4px;">
+            ${spellLevelOptions}
+          </select>
+        </div>
+      ` : ''}
+      
+      <div style="display:flex;gap:10px;margin-top:15px;">
+        <button id="spell-cast-btn" style="flex:1;padding:8px;background:#4f46e5;color:#fff;border:none;border-radius:4px;cursor:pointer;">Cast</button>
+        <button id="spell-close-btn" style="flex:1;padding:8px;background:#64748b;color:#fff;border:none;border-radius:4px;cursor:pointer;">Close</button>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  const closeModal = () => {
+    modal.remove();
+  };
+  
+  document.getElementById('spell-close-btn').addEventListener('click', closeModal);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) closeModal();
+  });
+  
+  document.getElementById('spell-cast-btn').addEventListener('click', () => {
+    const levelSelect = document.getElementById('spell-level-select');
+    const castLevel = levelSelect ? Number(levelSelect.value) : spell.level;
+    
+    if (castLevel > 0) {
+      const slotKey = `level_${castLevel}`;
+      if (combatant.spellcasting?.spellSlots[slotKey]) {
+        if (combatant.spellcasting.spellSlots[slotKey].used < combatant.spellcasting.spellSlots[slotKey].total) {
+          combatant.spellcasting.spellSlots[slotKey].used += 1;
+        } else {
+          alert(`No spell slots remaining at level ${castLevel}!`);
+          return;
+        }
+      }
+    }
+    
+    save();
+    closeModal();
+    render();
+  });
+}
+
 
 async function bootstrap() {
   const loaded = load();
