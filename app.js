@@ -1,7 +1,4 @@
-﻿const STORAGE_KEY = "npc-combat-manager:v1";
-
-// Track which stat blocks are expanded (DOM-level state, not persisted)
-const expandedStatBlocks = new Set();
+const STORAGE_KEY = "npc-combat-manager:v1";
 
 const state = {
   baseline: [],
@@ -127,7 +124,7 @@ function renderStatBlock(c) {
       ${(c.spellcasting?.spells || []).map((s,i) => {
         const levelStr = s.level === 0 ? 'C' : s.level;
         return `<div class="entry-row">
-          <button type="button" data-action="cast-spell" data-id="${c.id}" data-index="${i}" class="px-2 py-1 rounded bg-indigo-700 hover:bg-indigo-600 text-xs">[${levelStr}] ${escapeHtml(s.name)}</button>
+          <button type="button" data-action="cast-spell" data-id="${c.id}" data-index="${i}" style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;">[${levelStr}] ${escapeHtml(s.name)}</button>
           <button type="button" data-action="remove-spell" data-id="${c.id}" data-index="${i}" class="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-xs">✕</button>
         </div>`;
       }).join('')}
@@ -259,50 +256,98 @@ function render() {
     const card = document.createElement("article");
     const isCurrent = idx === state.meta.turnIndex;
 
+    const slotGrid = Object.entries(c.spellcasting?.spellSlots || {}).map(([lvl,s],i) => `
+      <div>
+        <label>${i+1}</label>
+        <button type="button" data-id="${c.id}" data-action="slot-use" data-level="${lvl}">-</button>
+        <span id="slot-${c.id}-${lvl}" class="slot-display">${s.used}/${s.total}</span>
+        <button type="button" data-id="${c.id}" data-action="slot-restore" data-level="${lvl}">+</button>
+      </div>`).join('');
+
     card.className = `rounded-lg border p-4 ${isCurrent ? "border-indigo-500 bg-slate-900" : "border-slate-800 bg-slate-900"}`;
     card.innerHTML = `
-      <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-3">
-        <div>
-          <h3 class="font-semibold text-lg">${c.name}</h3>
-          <p class="text-sm text-slate-400">Init ${c.initiative}</p>
-          ${c.sourceUrl ? `<a class="text-sm text-blue-400 underline" href="${c.sourceUrl}" target="_blank" rel="noreferrer">Source</a>` : ""}
+      <!-- Top bar -->
+      <div class="flex flex-wrap items-center gap-2 mb-4 text-sm">
+        <h3 class="font-semibold text-lg flex-shrink-0">${c.name}</h3>
+        <span class="text-slate-400">Init ${c.initiative}</span>
+        <span class="text-slate-300 font-mono">HP: ${c.hp.current}/${c.hp.max}${c.tempHp > 0 ? ` (+${c.tempHp})` : ''}</span>
+        <div class="flex gap-1 items-center">
+          <input id="hp-input-${c.id}" type="number" value="1" placeholder="Amt" class="w-12 px-1 py-0.5 rounded bg-slate-800 border border-slate-700 text-xs" />
+          <button data-action="damage-custom" data-id="${c.id}" class="px-1.5 py-0.5 rounded bg-rose-700 hover:bg-rose-600 text-xs">Dmg</button>
+          <button data-action="heal-custom" data-id="${c.id}" class="px-1.5 py-0.5 rounded bg-emerald-700 hover:bg-emerald-600 text-xs">Heal</button>
+          <button data-action="temp-hp" data-id="${c.id}" class="px-1.5 py-0.5 rounded bg-blue-700 hover:bg-blue-600 text-xs">Temp</button>
         </div>
-        <div class="grid grid-cols-1 gap-2">
-          <button data-action="remove" data-id="${c.id}" class="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-xs">Remove</button>
-        </div>
+        <input data-action="set-conditions" data-id="${c.id}" type="text" placeholder="Conditions" value="${c.conditions.join(", ")}" class="flex-1 min-w-48 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-xs" />
+        ${isCurrent ? '<span class="text-indigo-400 font-bold">TURN</span>' : ''}
+        <button data-action="remove" data-id="${c.id}" class="px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-xs">Remove</button>
       </div>
 
-      <div class="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-        <label class="space-y-1">
-          <span class="text-slate-400">HP: ${c.hp.current}${c.tempHp > 0 ? ` (+${c.tempHp} temp)` : ''}</span>
-          <div class="flex gap-1 items-center">
-            <input id="hp-input-${c.id}" type="number" value="1" placeholder="Amount" class="w-16 px-2 py-1 rounded bg-slate-800 border border-slate-700" />
-            <button data-action="damage-custom" data-id="${c.id}" class="px-2 py-1 rounded bg-rose-700 hover:bg-rose-600 text-xs flex-1">Damage</button>
-            <button data-action="heal-custom" data-id="${c.id}" class="px-2 py-1 rounded bg-emerald-700 hover:bg-emerald-600 text-xs flex-1">Heal</button>
-            <button data-action="temp-hp" data-id="${c.id}" class="px-2 py-1 rounded bg-blue-700 hover:bg-blue-600 text-xs flex-1">Temp</button>
+      <!-- 3-column stat block grid -->
+      <div class="stat-block-grid">
+        <!-- Column 1: Abilities & Core Stats -->
+        <div class="stat-column" style="color:#333;font-size:0.9em;">
+          <h4>Abilities</h4>
+          <div class="ability-grid">
+            ${['str','dex','con','int','wis','cha'].map(k => `
+              <div>
+                <label>${k.toUpperCase()}</label>
+                <input type="number" data-id="${c.id}" data-field="${k}.score" value="${c[k]?.score || 10}" style="width:100%;box-sizing:border-box;">
+                <div>Mod: ${(c[k]?.mod || 0) >= 0 ? '+' : ''}${c[k]?.mod || 0}</div>
+                <input type="number" placeholder="save" data-id="${c.id}" data-field="${k}.save" value="${c[k]?.save || 0}" style="width:100%;box-sizing:border-box;">
+              </div>`).join('')}
           </div>
-        </label>
+        </div>
 
-        <label class="space-y-1 md:col-span-2">
-          <span class="text-slate-400">Conditions (comma separated)</span>
-          <input data-action="set-conditions" data-id="${c.id}" type="text" value="${c.conditions.join(", ")}" class="w-full px-2 py-1 rounded bg-slate-800 border border-slate-700" />
-        </label>
-      </div>
+        <!-- Column 2: Defenses & Utility -->
+        <div class="stat-column" style="color:#333;font-size:0.9em;">
+          <h4>Defenses</h4>
+          <label>Resistances</label>
+          <input type="text" data-id="${c.id}" data-field="resistances" value="${escapeHtml((c.resistances||[]).join(', '))}" style="width:100%;box-sizing:border-box;"><br>
+          <label>Immunities</label>
+          <input type="text" data-id="${c.id}" data-field="immunities" value="${escapeHtml((c.immunities||[]).join(', '))}" style="width:100%;box-sizing:border-box;"><br>
+          <label>Vulnerabilities</label>
+          <input type="text" data-id="${c.id}" data-field="vulnerabilities" value="${escapeHtml((c.vulnerabilities||[]).join(', '))}" style="width:100%;box-sizing:border-box;"><br>
+          <label>Condition Immunities</label>
+          <input type="text" data-id="${c.id}" data-field="conditionImmunities" value="${escapeHtml((c.conditionImmunities||[]).join(', '))}" style="width:100%;box-sizing:border-box;"><br>
 
-      <div class="mt-3 space-y-2 text-sm">
-        <label class="space-y-1 block">
-          <span class="text-slate-400">Spell Slots (format: L1 2/4, L2 1/3)</span>
-          <input data-action="set-slots" data-id="${c.id}" type="text" value="${c.spellSlots.map((s) => `L${s.level} ${s.current}/${s.max}`).join(", ")}" class="w-full px-2 py-1 rounded bg-slate-800 border border-slate-700" />
-        </label>
-        <label class="space-y-1 block">
-          <span class="text-slate-400">Abilities (format: Legendary Resistance 1/3, Breath 0/1)</span>
-          <input data-action="set-abilities" data-id="${c.id}" type="text" value="${c.abilities.map((a) => `${a.name} ${a.usesCurrent}/${a.usesMax}`).join(", ")}" class="w-full px-2 py-1 rounded bg-slate-800 border border-slate-700" />
-        </label>
-      </div>
+          <h4>Utility</h4>
+          <label>Passive Perception</label>
+          <input type="number" data-id="${c.id}" data-field="passivePerception" value="${c.passivePerception || 10}" style="width:100%;box-sizing:border-box;"><br>
+          <label>Senses</label>
+          <input type="text" data-id="${c.id}" data-field="senses" value="${escapeHtml(c.senses || '')}" style="width:100%;box-sizing:border-box;"><br>
+          <label>Languages</label>
+          <input type="text" data-id="${c.id}" data-field="languages" value="${escapeHtml((c.languages||[]).join(', '))}" style="width:100%;box-sizing:border-box;"><br>
+          <label>Skills</label>
+          <input type="text" data-id="${c.id}" data-field="skills" value="${escapeHtml(c.skills || '')}" style="width:100%;box-sizing:border-box;"><br>
+        </div>
 
-      <button type="button" class="toggle-stat-block mt-3 px-3 py-2 rounded bg-slate-700 hover:bg-slate-600 text-sm" data-id="${c.id}">Stat Block ${expandedStatBlocks.has(c.id) ? '▾' : '▸'}</button>
-      <div class="stat-block${expandedStatBlocks.has(c.id) ? ' open' : ''}" id="sb-${c.id}" style="color:#333;font-size:0.9em;">
-        ${renderStatBlock(c)}
+        <!-- Column 3: Spellcasting & Combat -->
+        <div class="stat-column" style="color:#333;font-size:0.9em;">
+          <h4>Spellcasting</h4>
+          Ability:<select data-id="${c.id}" data-field="spellcasting.spellcastingAbility">
+            ${['none','int','wis','cha'].map(a=>`<option value="${a}"${c.spellcasting?.spellcastingAbility===a?' selected':''}>${a.toUpperCase()}</option>`).join('')}
+          </select><br>
+          DC:<input type="number" data-id="${c.id}" data-field="spellcasting.spellSaveDC" value="${c.spellcasting?.spellSaveDC || 0}" style="width:50px;">
+          Atk:<input type="number" data-id="${c.id}" data-field="spellcasting.spellAttackBonus" value="${c.spellcasting?.spellAttackBonus || 0}" style="width:50px;"><br>
+          <div class="slot-grid">${slotGrid}</div>
+          
+          <h4>Spells</h4>
+          <div id="spell-list-${c.id}" class="entry-list">
+            ${(c.spellcasting?.spells || []).map((s,i) => {
+              const levelStr = s.level === 0 ? 'C' : s.level;
+              return `<div class="entry-row">
+                <button type="button" data-action="cast-spell" data-id="${c.id}" data-index="${i}" style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;flex:1;">[${levelStr}] ${escapeHtml(s.name)}</button>
+                <button type="button" data-action="remove-spell" data-id="${c.id}" data-index="${i}" class="px-1 rounded bg-slate-700 hover:bg-slate-600 text-xs">✕</button>
+              </div>`;
+            }).join('')}
+          </div>
+          <div style="display:flex;gap:2px;margin-bottom:4px;flex-wrap:wrap;">
+            <input type="text" placeholder="name" id="new-spell-name-${c.id}" style="flex:0.8;min-width:60px;">
+            <input type="number" placeholder="lvl" id="new-spell-level-${c.id}" min="0" max="9" value="0" style="width:40px;">
+            <input type="text" placeholder="url" id="new-spell-url-${c.id}" style="flex:1;min-width:60px;">
+            <button type="button" data-action="add-spell" data-id="${c.id}" class="px-1 rounded bg-blue-600 hover:bg-blue-500 text-xs">+</button>
+          </div>
+        </div>
       </div>
     `;
 
@@ -489,19 +534,6 @@ function wireEvents() {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
     
-    // Toggle stat block - only on the button itself
-    if (target.classList.contains("toggle-stat-block")) {
-      event.stopPropagation();
-      const id = target.dataset.id;
-      if (expandedStatBlocks.has(id)) {
-        expandedStatBlocks.delete(id);
-      } else {
-        expandedStatBlocks.add(id);
-      }
-      render();
-      return;
-    }
-
     const action = target.dataset.action;
     const id = target.dataset.id;
 
@@ -555,12 +587,24 @@ function wireEvents() {
       const level = target.dataset.level;
       if (c.spellcasting?.spellSlots[level]) {
         c.spellcasting.spellSlots[level].used = Math.max(0, c.spellcasting.spellSlots[level].used - 1);
+        const slotDisplay = document.getElementById(`slot-${c.id}-${level}`);
+        if (slotDisplay) {
+          slotDisplay.textContent = `${c.spellcasting.spellSlots[level].used}/${c.spellcasting.spellSlots[level].total}`;
+          save();
+        }
       }
+      return;
     } else if (action === "slot-restore") {
       const level = target.dataset.level;
       if (c.spellcasting?.spellSlots[level]) {
         c.spellcasting.spellSlots[level].used = Math.min(c.spellcasting.spellSlots[level].total, c.spellcasting.spellSlots[level].used + 1);
+        const slotDisplay = document.getElementById(`slot-${c.id}-${level}`);
+        if (slotDisplay) {
+          slotDisplay.textContent = `${c.spellcasting.spellSlots[level].used}/${c.spellcasting.spellSlots[level].total}`;
+          save();
+        }
       }
+      return;
     } else if (action === "res-use") {
       const field = target.dataset.field;
       const index = Number(target.dataset.index);
@@ -747,18 +791,20 @@ function wireEvents() {
 }
 
 async function showSpellModal(combatant, spell) {
-  let spellContent = "Loading spell details...";
+  let spellContent = "Click to open spell description (external link)";
   
   if (spell.url) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    
     try {
-      const res = await fetch(spell.url);
+      const res = await fetch(spell.url, { signal: controller.signal });
+      clearTimeout(timeoutId);
       if (res.ok) {
         spellContent = await res.text();
-      } else {
-        spellContent = `<a href="${escapeHtml(spell.url)}" target="_blank" rel="noreferrer">Click to view spell details</a>`;
       }
     } catch (err) {
-      spellContent = `<a href="${escapeHtml(spell.url)}" target="_blank" rel="noreferrer">Click to view spell details (fetch failed)</a>`;
+      clearTimeout(timeoutId);
     }
   }
 
@@ -775,7 +821,7 @@ async function showSpellModal(combatant, spell) {
       <h2 style="margin-top:0;color:#fff;">${escapeHtml(spell.name)}</h2>
       
       <div style="background:#0f172a;padding:10px;border-radius:4px;margin:10px 0;max-height:300px;overflow-y:auto;border:1px solid #334155;">
-        ${spellContent}
+        ${spell.url ? `<a href="${escapeHtml(spell.url)}" target="_blank" rel="noreferrer" style="color:#60a5fa;text-decoration:underline;">Click to open spell description (external link)</a><hr style="border:none;border-top:1px solid #334155;margin:8px 0;"><pre style="white-space:pre-wrap;word-wrap:break-word;margin:0;">${spellContent}</pre>` : spellContent}
       </div>
       
       ${spell.level > 0 ? `
