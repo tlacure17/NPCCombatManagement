@@ -1,5 +1,8 @@
 ﻿const STORAGE_KEY = "npc-combat-manager:v1";
 
+// Track which stat blocks are expanded (DOM-level state, not persisted)
+const expandedStatBlocks = new Set();
+
 const state = {
   baseline: [],
   active: [],
@@ -264,10 +267,8 @@ function render() {
           <p class="text-sm text-slate-400">Init ${c.initiative}</p>
           ${c.sourceUrl ? `<a class="text-sm text-blue-400 underline" href="${c.sourceUrl}" target="_blank" rel="noreferrer">Source</a>` : ""}
         </div>
-        <div class="grid grid-cols-2 gap-2">
-          <button data-action="damage" data-id="${c.id}" class="px-2 py-1 rounded bg-rose-700 hover:bg-rose-600 text-xs">-1 HP</button>
-          <button data-action="heal" data-id="${c.id}" class="px-2 py-1 rounded bg-emerald-700 hover:bg-emerald-600 text-xs">+1 HP</button>
-          <button data-action="remove" data-id="${c.id}" class="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-xs col-span-2">Remove</button>
+        <div class="grid grid-cols-1 gap-2">
+          <button data-action="remove" data-id="${c.id}" class="px-2 py-1 rounded bg-slate-700 hover:bg-slate-600 text-xs">Remove</button>
         </div>
       </div>
 
@@ -299,8 +300,8 @@ function render() {
         </label>
       </div>
 
-      <button type="button" class="toggle-stat-block mt-3 px-3 py-2 rounded bg-slate-700 hover:bg-slate-600 text-sm" data-id="${c.id}">Stat Block ▸</button>
-      <div class="stat-block" id="sb-${c.id}" style="color:#333;font-size:0.9em;">
+      <button type="button" class="toggle-stat-block mt-3 px-3 py-2 rounded bg-slate-700 hover:bg-slate-600 text-sm" data-id="${c.id}">Stat Block ${expandedStatBlocks.has(c.id) ? '▾' : '▸'}</button>
+      <div class="stat-block${expandedStatBlocks.has(c.id) ? ' open' : ''}" id="sb-${c.id}" style="color:#333;font-size:0.9em;">
         ${renderStatBlock(c)}
       </div>
     `;
@@ -492,16 +493,12 @@ function wireEvents() {
     if (target.classList.contains("toggle-stat-block")) {
       event.stopPropagation();
       const id = target.dataset.id;
-      const statBlock = document.getElementById(`sb-${id}`);
-      if (statBlock) {
-        statBlock.classList.toggle("open");
-        target.textContent = statBlock.classList.contains("open") ? "Stat Block ▾" : "Stat Block ▸";
+      if (expandedStatBlocks.has(id)) {
+        expandedStatBlocks.delete(id);
+      } else {
+        expandedStatBlocks.add(id);
       }
-      return;
-    }
-
-    // Prevent actions from bubbling up from within the stat block
-    if (target.closest(".stat-block")) {
+      render();
       return;
     }
 
@@ -515,42 +512,8 @@ function wireEvents() {
 
     const c = found.combatant;
 
-    if (action === "damage") {
-      c.hp.current = Math.max(0, c.hp.current - 1);
-    } else if (action === "heal") {
-      c.hp.current = Math.min(c.hp.max, c.hp.current + 1);
-    } else if (action === "damage-custom") {
-      const input = document.getElementById(`hp-input-${id}`);
-      const amount = Number(input?.value || 1);
-      let remaining = amount;
-      if (c.tempHp > 0) {
-        const tempDamage = Math.min(c.tempHp, remaining);
-        c.tempHp -= tempDamage;
-        remaining -= tempDamage;
-      }
-      c.hp.current = Math.max(0, c.hp.current - remaining);
-    } else if (action === "heal-custom") {
-      const input = document.getElementById(`hp-input-${id}`);
-      const amount = Number(input?.value || 1);
-      c.hp.current = Math.min(c.hp.max, c.hp.current + amount);
-    } else if (action === "temp-hp") {
-      const input = document.getElementById(`hp-input-${id}`);
-      const amount = Number(input?.value || 0);
-      c.tempHp = Math.max(0, amount);
-    } else if (action === "remove") {
-      state.active.splice(found.idx, 1);
-      clampTurnIndex();
-    } else if (action === "add-entry") {
-      const field = target.dataset.field;
-      if (!c[field]) c[field] = [];
-      c[field].push({name:'',text:''});
-    } else if (action === "remove-entry") {
-      const field = target.dataset.field;
-      const index = Number(target.dataset.index);
-      if (c[field] && Array.isArray(c[field])) {
-        c[field].splice(index, 1);
-      }
-    } else if (action === "add-spell") {
+    // Handle stat block actions first
+    if (action === "add-spell") {
       const nameInput = document.getElementById(`new-spell-name-${id}`);
       const levelInput = document.getElementById(`new-spell-level-${id}`);
       const urlInput = document.getElementById(`new-spell-url-${id}`);
@@ -577,6 +540,16 @@ function wireEvents() {
       if (spell) {
         showSpellModal(c, spell);
         return;
+      }
+    } else if (action === "add-entry") {
+      const field = target.dataset.field;
+      if (!c[field]) c[field] = [];
+      c[field].push({name:'',text:''});
+    } else if (action === "remove-entry") {
+      const field = target.dataset.field;
+      const index = Number(target.dataset.index);
+      if (c[field] && Array.isArray(c[field])) {
+        c[field].splice(index, 1);
       }
     } else if (action === "slot-use") {
       const level = target.dataset.level;
@@ -614,17 +587,6 @@ function wireEvents() {
           maxInput.value = '';
         }
       }
-    } else if (action === "short-rest") {
-      if (c.perRestUses) {
-        c.perRestUses.forEach(r => r.used = 0);
-      }
-    } else if (action === "long-rest") {
-      if (c.perRestUses) {
-        c.perRestUses.forEach(r => r.used = 0);
-      }
-      if (c.perDayUses) {
-        c.perDayUses.forEach(r => r.used = 0);
-      }
     } else if (action === "counter-inc") {
       const index = Number(target.dataset.index);
       if (c.customCounters && c.customCounters[index]) {
@@ -648,6 +610,42 @@ function wireEvents() {
           maxInput.value = '';
         }
       }
+    } else if (action === "short-rest") {
+      if (c.perRestUses) {
+        c.perRestUses.forEach(r => r.used = 0);
+      }
+    } else if (action === "long-rest") {
+      if (c.perRestUses) {
+        c.perRestUses.forEach(r => r.used = 0);
+      }
+      if (c.perDayUses) {
+        c.perDayUses.forEach(r => r.used = 0);
+      }
+    }
+    // Card-level actions (outside stat block)
+    else if (target.closest(".stat-block")) {
+      return;
+    } else if (action === "damage-custom") {
+      const input = document.getElementById(`hp-input-${id}`);
+      const amount = Number(input?.value || 1);
+      let remaining = amount;
+      if (c.tempHp > 0) {
+        const tempDamage = Math.min(c.tempHp, remaining);
+        c.tempHp -= tempDamage;
+        remaining -= tempDamage;
+      }
+      c.hp.current = Math.max(0, c.hp.current - remaining);
+    } else if (action === "heal-custom") {
+      const input = document.getElementById(`hp-input-${id}`);
+      const amount = Number(input?.value || 1);
+      c.hp.current = Math.min(c.hp.max, c.hp.current + amount);
+    } else if (action === "temp-hp") {
+      const input = document.getElementById(`hp-input-${id}`);
+      const amount = Number(input?.value || 0);
+      c.tempHp = Math.max(0, amount);
+    } else if (action === "remove") {
+      state.active.splice(found.idx, 1);
+      clampTurnIndex();
     }
 
     save();
@@ -727,7 +725,7 @@ function wireEvents() {
     }
   }
 
-  els.list.addEventListener("input", (event) => {
+  els.list.addEventListener("change", (event) => {
     const target = event.target;
     if (!(target instanceof HTMLElement)) return;
     const id = target.dataset.id;
