@@ -1,0 +1,26 @@
+﻿[
+  {
+    "id": "goblin-boss",
+    "name": "Goblin Boss",
+    "initiative": 17,
+    "hp": { "current": 21, "max": 21 },
+    "conditions": ["Nimble Escape"],
+    "spellSlots": [],
+    "abilities": [
+      { "name": "Redirect Attack", "usesCurrent": 0, "usesMax": 1 }
+    ],
+    "sourceUrl": "https://www.dndbeyond.com/monsters/16907-goblin-boss",
+    "notes": "Focuses weakest target first."
+  },
+  {
+    "id": "goblin-1",
+    "name": "Goblin 1",
+    "initiative": 14,
+    "hp": { "current": 7, "max": 7 },
+    "conditions": [],
+    "spellSlots": [],
+    "abilities": [],
+    "sourceUrl": "https://www.dndbeyond.com/monsters/16907-goblin",
+    "notes": "Shortbow from cover."
+  }
+]
