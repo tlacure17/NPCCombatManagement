@@ -303,6 +303,64 @@ function render() {
             <button type="button" data-action="add-spell" data-id="${c.id}" class="px-1 rounded bg-blue-600 hover:bg-blue-500 text-xs">+</button>
           </div>
           <textarea placeholder="Paste spell text" id="new-spell-rawtext-${c.id}" rows="3" style="width:100%;font-family:monospace;font-size:0.8em;resize:vertical;"></textarea>
+
+          <h4>Traits</h4>
+          <div class="entry-list">
+            ${(c.traits||[]).map((e,i) => `
+              <div class="entry-row">
+                <input type="text" placeholder="name" data-id="${c.id}" data-field="traits[${i}].name" value="${escapeHtml(e.name||'')}" style="width:120px">
+                <textarea data-id="${c.id}" data-field="traits[${i}].text">${escapeHtml(e.text||'')}</textarea>
+                <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="traits" data-index="${i}">✕</button>
+              </div>`).join('')}
+          </div>
+          <button type="button" data-id="${c.id}" data-action="add-entry" data-field="traits">+ Add</button>
+
+          <h4>Actions</h4>
+          <div class="entry-list">
+            ${(c.actions||[]).map((e,i) => `
+              <div class="entry-row">
+                <input type="text" placeholder="name" data-id="${c.id}" data-field="actions[${i}].name" value="${escapeHtml(e.name||'')}" style="width:120px">
+                <textarea data-id="${c.id}" data-field="actions[${i}].text">${escapeHtml(e.text||'')}</textarea>
+                <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="actions" data-index="${i}">✕</button>
+              </div>`).join('')}
+          </div>
+          <button type="button" data-id="${c.id}" data-action="add-entry" data-field="actions">+ Add</button>
+
+          <h4>Bonus Actions</h4>
+          <div class="entry-list">
+            ${(c.bonusActions||[]).map((e,i) => `
+              <div class="entry-row">
+                <input type="text" placeholder="name" data-id="${c.id}" data-field="bonusActions[${i}].name" value="${escapeHtml(e.name||'')}" style="width:120px">
+                <textarea data-id="${c.id}" data-field="bonusActions[${i}].text">${escapeHtml(e.text||'')}</textarea>
+                <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="bonusActions" data-index="${i}">✕</button>
+              </div>`).join('')}
+          </div>
+          <button type="button" data-id="${c.id}" data-action="add-entry" data-field="bonusActions">+ Add</button>
+
+          <h4>Reactions</h4>
+          <div class="entry-list">
+            ${(c.reactions||[]).map((e,i) => `
+              <div class="entry-row">
+                <input type="text" placeholder="name" data-id="${c.id}" data-field="reactions[${i}].name" value="${escapeHtml(e.name||'')}" style="width:120px">
+                <textarea data-id="${c.id}" data-field="reactions[${i}].text">${escapeHtml(e.text||'')}</textarea>
+                <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="reactions" data-index="${i}">✕</button>
+              </div>`).join('')}
+          </div>
+          <button type="button" data-id="${c.id}" data-action="add-entry" data-field="reactions">+ Add</button>
+
+          <h4>Legendary Actions (pool:
+            <input type="number" data-id="${c.id}" data-field="legendaryActionCount" value="${c.legendaryActionCount || 0}" style="width:40px">
+          )</h4>
+          <div class="entry-list">
+            ${(c.legendaryActions||[]).map((e,i) => `
+              <div class="entry-row">
+                <input type="text" placeholder="name" data-id="${c.id}" data-field="legendaryActions[${i}].name" value="${escapeHtml(e.name||'')}" style="width:100px">
+                Cost:<input type="number" data-id="${c.id}" data-field="legendaryActions[${i}].cost" value="${e.cost||1}" style="width:35px">
+                <textarea data-id="${c.id}" data-field="legendaryActions[${i}].text">${escapeHtml(e.text||'')}</textarea>
+                <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="legendaryActions" data-index="${i}">✕</button>
+              </div>`).join('')}
+          </div>
+          <button type="button" data-id="${c.id}" data-action="add-entry" data-field="legendaryActions">+ Add</button>
         </div>
       </div>
     `;
