@@ -278,34 +278,8 @@ function render() {
           <input type="text" data-id="${c.id}" data-field="skills" value="${escapeHtml(c.skills || '')}" style="width:100%;box-sizing:border-box;"><br>
         </div>
 
-        <!-- Column 3: Spellcasting & Combat -->
+        <!-- Column 3: Combat Text -->
         <div class="stat-column" style="color:#333;font-size:0.9em;">
-          <h4>Spellcasting</h4>
-          Ability:<select data-id="${c.id}" data-field="spellcasting.spellcastingAbility">
-            ${['none','int','wis','cha'].map(a=>`<option value="${a}"${c.spellcasting?.spellcastingAbility===a?' selected':''}>${a.toUpperCase()}</option>`).join('')}
-          </select><br>
-          DC:<input type="number" data-id="${c.id}" data-field="spellcasting.spellSaveDC" value="${c.spellcasting?.spellSaveDC || 0}" style="width:50px;">
-          Atk:<input type="number" data-id="${c.id}" data-field="spellcasting.spellAttackBonus" value="${c.spellcasting?.spellAttackBonus || 0}" style="width:50px;"><br>
-          <div class="slot-grid">${slotGrid}</div>
-          
-          <h4>Spells</h4>
-          <div id="spell-list-${c.id}" class="entry-list">
-            ${(c.spellcasting?.spells || []).map((s,i) => {
-              const levelStr = s.atWill ? '∞' : (s.level === 0 ? 'C' : s.level);
-              return `<div class="entry-row">
-                <button type="button" data-action="cast-spell" data-id="${c.id}" data-index="${i}" style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;flex:1;">[${levelStr}] ${escapeHtml(s.name)}</button>
-                <button type="button" data-action="remove-spell" data-id="${c.id}" data-index="${i}" class="px-1 rounded bg-slate-700 hover:bg-slate-600 text-xs">✕</button>
-              </div>`;
-            }).join('')}
-          </div>
-          <div style="display:flex;gap:2px;margin-bottom:4px;flex-wrap:wrap;">
-            <input type="text" placeholder="name" id="new-spell-name-${c.id}" style="flex:0.8;min-width:60px;">
-            <input type="number" placeholder="lvl" id="new-spell-level-${c.id}" min="0" max="9" value="0" style="width:40px;">
-            <label style="display:flex;align-items:center;gap:2px;font-size:0.75em;"><input type="checkbox" id="new-spell-atwill-${c.id}"> At-will</label>
-            <button type="button" data-action="add-spell" data-id="${c.id}" class="px-1 rounded bg-blue-600 hover:bg-blue-500 text-xs">+</button>
-          </div>
-          <textarea placeholder="Paste spell text" id="new-spell-rawtext-${c.id}" rows="3" style="width:100%;font-family:monospace;font-size:0.8em;resize:vertical;"></textarea>
-
           <h4>Traits</h4>
           <div class="entry-list">
             ${(c.traits||[]).map((e,i) => `
@@ -363,6 +337,35 @@ function render() {
               </div>`).join('')}
           </div>
           <button type="button" data-id="${c.id}" data-action="add-entry" data-field="legendaryActions">+ Add</button>
+        </div>
+
+        <!-- Column 4: Spellcasting -->
+        <div class="stat-column" style="color:#333;font-size:0.9em;">
+          <h4>Spellcasting</h4>
+          Ability:<select data-id="${c.id}" data-field="spellcasting.spellcastingAbility">
+            ${['none','int','wis','cha'].map(a=>`<option value="${a}"${c.spellcasting?.spellcastingAbility===a?' selected':''}>${a.toUpperCase()}</option>`).join('')}
+          </select><br>
+          DC:<input type="number" data-id="${c.id}" data-field="spellcasting.spellSaveDC" value="${c.spellcasting?.spellSaveDC || 0}" style="width:50px;">
+          Atk:<input type="number" data-id="${c.id}" data-field="spellcasting.spellAttackBonus" value="${c.spellcasting?.spellAttackBonus || 0}" style="width:50px;"><br>
+          <div class="slot-grid">${slotGrid}</div>
+          
+          <h4>Spells</h4>
+          <div id="spell-list-${c.id}" class="entry-list">
+            ${(c.spellcasting?.spells || []).map((s,i) => {
+              const levelStr = s.atWill ? '∞' : (s.level === 0 ? 'C' : s.level);
+              return `<div class="entry-row">
+                <button type="button" data-action="cast-spell" data-id="${c.id}" data-index="${i}" style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;flex:1;">[${levelStr}] ${escapeHtml(s.name)}</button>
+                <button type="button" data-action="remove-spell" data-id="${c.id}" data-index="${i}" class="px-1 rounded bg-slate-700 hover:bg-slate-600 text-xs">✕</button>
+              </div>`;
+            }).join('')}
+          </div>
+          <div style="display:flex;gap:2px;margin-bottom:4px;flex-wrap:wrap;">
+            <input type="text" placeholder="name" id="new-spell-name-${c.id}" style="flex:0.8;min-width:60px;">
+            <input type="number" placeholder="lvl" id="new-spell-level-${c.id}" min="0" max="9" value="0" style="width:40px;">
+            <label style="display:flex;align-items:center;gap:2px;font-size:0.75em;"><input type="checkbox" id="new-spell-atwill-${c.id}"> At-will</label>
+            <button type="button" data-action="add-spell" data-id="${c.id}" class="px-1 rounded bg-blue-600 hover:bg-blue-500 text-xs">+</button>
+          </div>
+          <textarea placeholder="Paste spell text" id="new-spell-rawtext-${c.id}" rows="3" style="width:100%;font-family:monospace;font-size:0.8em;resize:vertical;"></textarea>
         </div>
       </div>
     `;
