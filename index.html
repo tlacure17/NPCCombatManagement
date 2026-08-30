@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NPC Combat Manager</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .stat-block { display:none; padding:8px; background:#f9f9f9; border-top:1px solid #ccc; }
+    .stat-block.open { display:block; }
+    .stat-block h4 { margin:6px 0 2px; font-size:0.85em; text-transform:uppercase; color:#555; }
+    .ability-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:4px; text-align:center; }
+    .ability-grid label { font-weight:bold; font-size:0.75em; }
+    .ability-grid input { width:100%; box-sizing:border-box; }
+    .slot-grid { display:grid; grid-template-columns:repeat(9,1fr); gap:4px; }
+    .entry-list { margin:4px 0; }
+    .entry-list .entry-row { display:flex; gap:4px; align-items:flex-start; margin-bottom:4px; }
+    .entry-list textarea { flex:1; min-height:48px; }
+  </style>
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen">
   <main class="max-w-7xl mx-auto p-4 md:p-6 space-y-6">
