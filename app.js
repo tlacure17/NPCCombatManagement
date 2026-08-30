@@ -179,7 +179,8 @@ function normalizeCombatants(items) {
           sc.spells = sc.spells.map(s => ({
             name: s.name || "",
             level: s.level || 0,
-            rawText: s.rawText || s.url || ""
+            rawText: s.rawText || s.url || "",
+            atWill: s.atWill || false
           }));
         }
         return sc;
@@ -290,7 +291,7 @@ function render() {
           <h4>Spells</h4>
           <div id="spell-list-${c.id}" class="entry-list">
             ${(c.spellcasting?.spells || []).map((s,i) => {
-              const levelStr = s.level === 0 ? 'C' : s.level;
+              const levelStr = s.atWill ? '∞' : (s.level === 0 ? 'C' : s.level);
               return `<div class="entry-row">
                 <button type="button" data-action="cast-spell" data-id="${c.id}" data-index="${i}" style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;flex:1;">[${levelStr}] ${escapeHtml(s.name)}</button>
                 <button type="button" data-action="remove-spell" data-id="${c.id}" data-index="${i}" class="px-1 rounded bg-slate-700 hover:bg-slate-600 text-xs">✕</button>
@@ -300,6 +301,7 @@ function render() {
           <div style="display:flex;gap:2px;margin-bottom:4px;flex-wrap:wrap;">
             <input type="text" placeholder="name" id="new-spell-name-${c.id}" style="flex:0.8;min-width:60px;">
             <input type="number" placeholder="lvl" id="new-spell-level-${c.id}" min="0" max="9" value="0" style="width:40px;">
+            <label style="display:flex;align-items:center;gap:2px;font-size:0.75em;"><input type="checkbox" id="new-spell-atwill-${c.id}"> At-will</label>
             <button type="button" data-action="add-spell" data-id="${c.id}" class="px-1 rounded bg-blue-600 hover:bg-blue-500 text-xs">+</button>
           </div>
           <textarea placeholder="Paste spell text" id="new-spell-rawtext-${c.id}" rows="3" style="width:100%;font-family:monospace;font-size:0.8em;resize:vertical;"></textarea>
@@ -563,16 +565,19 @@ function wireEvents() {
       const nameInput = document.getElementById(`new-spell-name-${id}`);
       const levelInput = document.getElementById(`new-spell-level-${id}`);
       const rawTextInput = document.getElementById(`new-spell-rawtext-${id}`);
+      const atWillInput = document.getElementById(`new-spell-atwill-${id}`);
       if (nameInput && levelInput && rawTextInput) {
         const name = nameInput.value.trim();
         const level = Number(levelInput.value);
         const rawText = rawTextInput.value.trim();
+        const atWill = atWillInput ? atWillInput.checked : false;
         if (name && level >= 0 && level <= 9) {
           if (!c.spellcasting.spells) c.spellcasting.spells = [];
-          c.spellcasting.spells.push({name, level, rawText});
+          c.spellcasting.spells.push({name, level, rawText, atWill});
           nameInput.value = '';
           levelInput.value = '0';
           rawTextInput.value = '';
+          if (atWillInput) atWillInput.checked = false;
         }
       }
     } else if (action === "remove-spell") {
@@ -732,6 +737,8 @@ function wireEvents() {
           .split(",")
           .map((x) => x.trim())
           .filter(Boolean);
+        save();
+        return; // skip re-render to prevent DOM reset
       } else if (action === "set-slots") {
         c.spellSlots = parseSlots(target.value);
       } else if (action === "set-abilities") {
@@ -818,6 +825,10 @@ function showSpellModal(combatant, spell) {
     {label: "Damage", value: parsed.damageEffect}
   ].filter(f => f.value);
 
+  if (spell.atWill) {
+    metaFields.unshift({label: "At-will", value: "∞ (no slot cost)"});
+  }
+
   const descriptionHtml = parsed.description 
     ? parsed.description.split('\n\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')
     : "No description provided.";
@@ -873,7 +884,7 @@ function showSpellModal(combatant, spell) {
     const levelSelect = document.getElementById('spell-level-select');
     const castLevel = levelSelect ? Number(levelSelect.value) : spell.level;
     
-    if (castLevel > 0) {
+    if (!spell.atWill && castLevel > 0) {
       const slotKey = `level_${castLevel}`;
       if (combatant.spellcasting?.spellSlots[slotKey]) {
         if (combatant.spellcasting.spellSlots[slotKey].used < combatant.spellcasting.spellSlots[slotKey].total) {
