@@ -1,46 +1,105 @@
 ﻿# NPC Combat Manager
 
-A lightweight, local-first web app for Dungeon Masters to run a single combat encounter (about 8 NPCs/participants) with fast iteration and no backend hosting.
+Single-page D&D 5e combat tracker for DM-side encounter management. It runs entirely in the browser with local persistence and no backend.
 
-## Features in this first pass
+## Live URL (GitHub Pages)
 
-- Initiative order tracking
-- Turn management (next/prev round)
-- HP tracking (current/max)
-- Conditions/status tracking
-- Spell slot and ability use counters
-- Optional source URL field on each combatant
-- Local persistence in browser storage
-- Export current state to JSON
-- Restore baseline encounter from JSON
-- Reset active encounter back to baseline
+https://tlacure17.github.io/NPCCombatManagement/
 
-## Tech stack
+## Quick Start
 
-- Vanilla HTML/CSS/JavaScript
-- Tailwind CSS via CDN
-- Browser localStorage for persistence
-- GitHub Pages-friendly static hosting
+1. Open the live app: https://tlacure17.github.io/NPCCombatManagement/
+2. Or run locally by opening `index.html` directly in your browser (`file://.../index.html`).
+3. Add/edit combatants, run initiative, and use Export State for backups.
 
-## Quick start
+## Combatant Schema Reference
 
-1. Clone repo
-2. Open `index.html` in a browser
-3. Add combatants and run combat
+Each combatant supports full stat-block and runtime fields. Missing fields are populated by `migrate()` defaults on load/import.
 
-## Data model (high level)
+### Core
 
-- `baseline`: canonical encounter snapshot
-- `active`: mutable combat state for the current encounter
-- `meta`: UI state such as selected turn index and round number
+- `name: string`
+- `size: string`
+- `type: string`
+- `alignment: string`
+- `ac: number`
+- `acNote: string`
+- `hp: number`
+- `hpFormula: string`
+- `speed: string`
+- `proficiencyBonus: number`
+- `cr: string`
+- `xp: number`
 
-Everything is stored under one localStorage key to keep backups simple.
+### Abilities
 
-## Hosting
+- `str: { score: number, mod: number, save: number }`
+- `dex: { score: number, mod: number, save: number }`
+- `con: { score: number, mod: number, save: number }`
+- `int: { score: number, mod: number, save: number }`
+- `wis: { score: number, mod: number, save: number }`
+- `cha: { score: number, mod: number, save: number }`
 
-This project is intended for GitHub Pages. No server, database, or secrets required.
+### Defenses
 
-## Notes
+- `resistances: string[]`
+- `immunities: string[]`
+- `vulnerabilities: string[]`
+- `conditionImmunities: string[]`
 
-This is intentionally local-first for fast hobby iteration.
-If your data gets messy, you can restore baseline or import a clean JSON snapshot.
+### Utility
+
+- `saves: string[]`
+- `skills: string[]`
+- `senses: string[]`
+- `languages: string[]`
+- `passivePerception: number`
+
+### Combat text blocks
+
+- `traits: Array<{ name: string, text: string }>`
+- `actions: Array<{ name: string, text: string }>`
+- `bonusActions: Array<{ name: string, text: string }>`
+- `reactions: Array<{ name: string, text: string }>`
+- `legendaryActions: Array<{ name: string, text: string, cost: number }>`
+- `legendaryActionCount: number`
+- `lairActions: Array<{ name: string, text: string }>`
+- `spellcasting: {`
+  - `casterLevel: string`
+  - `ability: string`
+  - `saveDc: number`
+  - `attackBonus: number`
+  - `atWill: string[]`
+  - `daily: Array<{ label: string, spells: string[] }>`
+  - `byLevel: Array<{ level: string, slots: string, spells: string[] }>`
+`}`
+
+### Resources
+
+- `perRestUses: Array<{ name: string, max: number, used: number }>`
+- `perDayUses: Array<{ name: string, max: number, used: number }>`
+- `customCounters: Array<{ name: string, value: number, max: number }>`
+
+### Runtime fields
+
+- `id: string`
+- `initiative: number`
+- `currentHp: number`
+- `conditions: string[]`
+- `isPlayer: boolean`
+- `notes: string`
+
+## Editing Workflow
+
+1. Update `baseline.encounter.json` with your encounter or NPC templates.
+2. Launch app and make combat-time changes in UI.
+3. Export current state JSON before/after sessions.
+4. Import exported JSON to resume an encounter.
+5. Use Restore/Reset flows to recover from mistakes quickly.
+
+## Import/Export Compatibility
+
+- Import accepts older snapshots and baseline shapes.
+- `migrate()` fills missing fields with safe defaults.
+- Existing lightweight combatants remain usable after schema expansion.
+- Export always writes the current, normalized shape.
