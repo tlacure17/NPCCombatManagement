@@ -172,7 +172,10 @@ function normalizeCombatants(items) {
           spellAttackBonus: 0,
           cantrips: "",
           spellSlots: {},
-          spells: []
+          spells: [],
+          innateAbility: 'none',
+          innateAttackBonus: 0,
+          innateSaveDC: 0
         };
         // Migrate old url-based spells to rawText-based
         if (Array.isArray(sc.spells)) {
@@ -183,6 +186,10 @@ function normalizeCombatants(items) {
             atWill: s.atWill || false
           }));
         }
+        // Ensure innate fields exist
+        if (!sc.innateAbility) sc.innateAbility = 'none';
+        if (!sc.innateAttackBonus) sc.innateAttackBonus = 0;
+        if (!sc.innateSaveDC) sc.innateSaveDC = 0;
         return sc;
       })(),
       perRestUses: Array.isArray(item.perRestUses) ? item.perRestUses : [],
@@ -355,6 +362,7 @@ function render() {
               const levelStr = s.atWill ? '∞' : (s.level === 0 ? 'C' : s.level);
               return `<div class="entry-row">
                 <button type="button" data-action="cast-spell" data-id="${c.id}" data-index="${i}" style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;flex:1;">[${levelStr}] ${escapeHtml(s.name)}</button>
+                <button type="button" data-action="toggle-atwill" data-id="${c.id}" data-index="${i}" class="px-1.5 rounded ${s.atWill ? 'bg-amber-600 hover:bg-amber-500' : 'bg-slate-700 hover:bg-slate-600'} text-xs" title="Toggle at-will">${s.atWill ? '∞' : '◆'}</button>
                 <button type="button" data-action="remove-spell" data-id="${c.id}" data-index="${i}" class="px-1 rounded bg-slate-700 hover:bg-slate-600 text-xs">✕</button>
               </div>`;
             }).join('')}
@@ -366,6 +374,16 @@ function render() {
             <button type="button" data-action="add-spell" data-id="${c.id}" class="px-1 rounded bg-blue-600 hover:bg-blue-500 text-xs">+</button>
           </div>
           <textarea placeholder="Paste spell text" id="new-spell-rawtext-${c.id}" rows="3" style="width:100%;font-family:monospace;font-size:0.8em;resize:vertical;"></textarea>
+        </div>
+
+        <!-- Column 5: Innate Spellcasting -->
+        <div class="stat-column" style="color:#333;font-size:0.9em;">
+          <h4>Innate Spellcasting</h4>
+          Ability:<select data-id="${c.id}" data-field="spellcasting.innateAbility">
+            ${['none','int','wis','cha'].map(a=>`<option value="${a}"${c.spellcasting?.innateAbility===a?' selected':''}>${a.toUpperCase()}</option>`).join('')}
+          </select><br>
+          DC:<input type="number" data-id="${c.id}" data-field="spellcasting.innateSaveDC" value="${c.spellcasting?.innateSaveDC || 0}" style="width:50px;">
+          Atk:<input type="number" data-id="${c.id}" data-field="spellcasting.innateAttackBonus" value="${c.spellcasting?.innateAttackBonus || 0}" style="width:50px;"><br>
         </div>
       </div>
     `;
@@ -474,7 +492,10 @@ function wireEvents() {
         spellAttackBonus: 0,
         cantrips: "",
         spellSlots: {},
-        spells: []
+        spells: [],
+        innateAbility: 'none',
+        innateAttackBonus: 0,
+        innateSaveDC: 0
       },
       perRestUses: [],
       perDayUses: [],
@@ -587,6 +608,12 @@ function wireEvents() {
       const index = Number(target.dataset.index);
       if (c.spellcasting?.spells && Array.isArray(c.spellcasting.spells)) {
         c.spellcasting.spells.splice(index, 1);
+      }
+    } else if (action === "toggle-atwill") {
+      const index = Number(target.dataset.index);
+      const spell = c.spellcasting?.spells?.[index];
+      if (spell) {
+        spell.atWill = !spell.atWill;
       }
     } else if (action === "cast-spell") {
       const index = Number(target.dataset.index);
