@@ -311,23 +311,23 @@ function render() {
         <div class="stat-column" style="font-size:0.9em;">
           <h4>Defenses</h4>
           <label>Resistances</label>
-          <input type="text" data-id="${c.id}" data-field="resistances" value="${escapeHtml((c.resistances||[]).join(', '))}" style="width:100%;box-sizing:border-box;"><br>
+          <textarea data-id="${c.id}" data-field="resistances" style="width:100%;box-sizing:border-box;min-height:60px;resize:vertical;">${escapeHtml((c.resistances||[]).join(", "))}</textarea><br>
           <label>Immunities</label>
-          <input type="text" data-id="${c.id}" data-field="immunities" value="${escapeHtml((c.immunities||[]).join(', '))}" style="width:100%;box-sizing:border-box;"><br>
+          <textarea data-id="${c.id}" data-field="immunities" style="width:100%;box-sizing:border-box;min-height:60px;resize:vertical;">${escapeHtml((c.immunities||[]).join(", "))}</textarea><br>
           <label>Vulnerabilities</label>
-          <input type="text" data-id="${c.id}" data-field="vulnerabilities" value="${escapeHtml((c.vulnerabilities||[]).join(', '))}" style="width:100%;box-sizing:border-box;"><br>
+          <textarea data-id="${c.id}" data-field="vulnerabilities" style="width:100%;box-sizing:border-box;min-height:60px;resize:vertical;">${escapeHtml((c.vulnerabilities||[]).join(", "))}</textarea><br>
           <label>Condition Immunities</label>
-          <input type="text" data-id="${c.id}" data-field="conditionImmunities" value="${escapeHtml((c.conditionImmunities||[]).join(', '))}" style="width:100%;box-sizing:border-box;"><br>
+          <textarea data-id="${c.id}" data-field="conditionImmunities" style="width:100%;box-sizing:border-box;min-height:60px;resize:vertical;">${escapeHtml((c.conditionImmunities||[]).join(", "))}</textarea><br>
 
           <h4>Utility</h4>
           <label>Passive Perception</label>
           <input type="number" data-id="${c.id}" data-field="passivePerception" value="${c.passivePerception || 10}" style="width:100%;box-sizing:border-box;"><br>
           <label>Senses</label>
-          <input type="text" data-id="${c.id}" data-field="senses" value="${escapeHtml(c.senses || '')}" style="width:100%;box-sizing:border-box;"><br>
+          <textarea data-id="${c.id}" data-field="senses" style="width:100%;box-sizing:border-box;min-height:60px;resize:vertical;">${escapeHtml(c.senses || "")}</textarea><br>
           <label>Languages</label>
-          <input type="text" data-id="${c.id}" data-field="languages" value="${escapeHtml((c.languages||[]).join(', '))}" style="width:100%;box-sizing:border-box;"><br>
+          <textarea data-id="${c.id}" data-field="languages" style="width:100%;box-sizing:border-box;min-height:60px;resize:vertical;">${escapeHtml((c.languages||[]).join(", "))}</textarea><br>
           <label>Skills</label>
-          <input type="text" data-id="${c.id}" data-field="skills" value="${escapeHtml(c.skills || '')}" style="width:100%;box-sizing:border-box;"><br>
+          <textarea data-id="${c.id}" data-field="skills" style="width:100%;box-sizing:border-box;min-height:60px;resize:vertical;">${escapeHtml(c.skills || "")}</textarea><br>
         </div>
 
         <!-- Column 3: Combat Text -->
