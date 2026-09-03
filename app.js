@@ -399,7 +399,7 @@ function render() {
           Atk:<input type="number" data-id="${c.id}" data-field="spellcasting.spellAttackBonus" value="${c.spellcasting?.spellAttackBonus || 0}" style="width:50px;"><br>
           <div class="slot-grid">${slotGrid}</div>
           
-          <h4>Spells</h4>
+          <h4 style="color:#fff;">Spells</h4>
           <div id="spell-list-${c.id}" class="entry-list">
             ${(c.spellcasting?.spells || []).map((s,i) => {
               const levelStr = s.atWill ? '∞' : (s.level === 0 ? 'C' : s.level);
@@ -413,7 +413,7 @@ function render() {
           <div style="display:flex;gap:2px;margin-bottom:4px;flex-wrap:wrap;">
             <input type="text" placeholder="name" id="new-spell-name-${c.id}" style="flex:0.8;min-width:60px;">
             <input type="number" placeholder="lvl" id="new-spell-level-${c.id}" min="0" max="9" value="0" style="width:40px;">
-            <label style="display:flex;align-items:center;gap:2px;font-size:0.75em;"><input type="checkbox" id="new-spell-atwill-${c.id}"> At-will</label>
+            <label style="display:flex;align-items:center;gap:2px;font-size:0.75em;color:#fff;"><input type="checkbox" id="new-spell-atwill-${c.id}"> At-will</label>
             <button type="button" data-action="add-spell" data-id="${c.id}" class="px-1 rounded bg-blue-600 hover:bg-blue-500 text-xs">+</button>
           </div>
           <textarea placeholder="Paste spell text" id="new-spell-rawtext-${c.id}" rows="3" style="width:100%;font-family:monospace;font-size:0.8em;resize:vertical;"></textarea>
@@ -779,7 +779,7 @@ function wireEvents() {
       const index = Number(target.dataset.index);
       const spell = c.spellcasting?.spells?.[index];
       if (spell) {
-        showSpellModal(c, spell);
+        showSpellModal(c, spell, index);
         return;
       }
     } else if (action === "add-entry") {
@@ -1001,7 +1001,7 @@ function wireEvents() {
 
 }
 
-function showSpellModal(combatant, spell) {
+function showSpellModal(combatant, spell, spellIndex) {
   const parsed = parseSpellText(spell.rawText || "");
   
   const metaFields = [
@@ -1019,10 +1019,6 @@ function showSpellModal(combatant, spell) {
     metaFields.unshift({label: "At-will", value: "∞ (no slot cost)"});
   }
 
-  const descriptionHtml = parsed.description 
-    ? parsed.description.split('\n\n').map(p => `<p>${escapeHtml(p)}</p>`).join('')
-    : "No description provided.";
-
   const maxSpellLevel = spell.level === 0 ? 0 : 9;
   const spellLevelOptions = Array.from({length: maxSpellLevel - spell.level + 1}, (_, i) => spell.level + i)
     .map(lvl => `<option value="${lvl}"${lvl === spell.level ? ' selected' : ''}>${lvl === 0 ? 'Cantrip' : `Level ${lvl}`}</option>`)
@@ -1039,13 +1035,21 @@ function showSpellModal(combatant, spell) {
         ${metaFields.map(f => `<span><b>${escapeHtml(f.label)}:</b> ${escapeHtml(f.value)}</span>`).join('')}
       </div>
       
-      <div class="spell-desc" style="font-size:0.9em;line-height:1.5;background:#0f172a;padding:10px;border-radius:4px;margin:10px 0;border:1px solid #334155;max-height:300px;overflow-y:auto;">
-        ${descriptionHtml}
+      <div class="spell-edit" style="display:grid;gap:8px;margin:10px 0;">
+        <label for="spell-name-input" style="font-weight:600;color:#fff;">Name</label>
+        <input id="spell-name-input" type="text" value="${escapeHtml(spell.name)}" style="width:100%;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:4px;">
+        <label for="spell-level-input" style="font-weight:600;color:#fff;">Level</label>
+        <input id="spell-level-input" type="number" min="0" max="9" value="${Number(spell.level) || 0}" style="width:100%;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:4px;">
+        <label style="display:flex;align-items:center;gap:8px;color:#fff;">
+          <input id="spell-atwill-input" type="checkbox" ${spell.atWill ? 'checked' : ''}> At-will
+        </label>
+        <label for="spell-description-input" style="font-weight:600;color:#fff;">Description</label>
+        <textarea id="spell-description-input" rows="8" style="width:100%;font-size:0.9em;line-height:1.5;background:#0f172a;padding:10px;border-radius:4px;border:1px solid #334155;color:#e2e8f0;resize:vertical;">${escapeHtml(parsed.description || "")}</textarea>
       </div>
       
       ${spell.level > 0 ? `
         <div style="margin:10px 0;">
-          <label style="display:block;margin-bottom:5px;">Cast at level:</label>
+          <label style="display:block;margin-bottom:5px;color:#fff;">Cast at level:</label>
           <select id="spell-level-select" style="padding:5px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:4px;">
             ${spellLevelOptions}
           </select>
@@ -1064,13 +1068,38 @@ function showSpellModal(combatant, spell) {
   const closeModal = () => {
     modal.remove();
   };
+
+  const saveSpellEdits = () => {
+    const liveSpell = combatant.spellcasting?.spells?.[spellIndex];
+    if (!liveSpell) return;
+    const nameInput = document.getElementById('spell-name-input');
+    const levelInput = document.getElementById('spell-level-input');
+    const atWillInput = document.getElementById('spell-atwill-input');
+    const descriptionInput = document.getElementById('spell-description-input');
+    if (!nameInput || !levelInput || !atWillInput || !descriptionInput) return;
+    const level = Math.min(9, Math.max(0, Number(levelInput.value) || 0));
+    liveSpell.name = nameInput.value.trim() || liveSpell.name;
+    liveSpell.level = level;
+    liveSpell.atWill = atWillInput.checked;
+    liveSpell.rawText = (descriptionInput.value || "").trim();
+    save();
+  };
   
   document.getElementById('spell-close-btn').addEventListener('click', closeModal);
   modal.addEventListener('click', (e) => {
     if (e.target === modal) closeModal();
   });
+
+  ['spell-name-input', 'spell-level-input', 'spell-atwill-input', 'spell-description-input'].forEach((id) => {
+    const input = document.getElementById(id);
+    if (input) {
+      input.addEventListener('input', saveSpellEdits);
+      input.addEventListener('change', saveSpellEdits);
+    }
+  });
   
   document.getElementById('spell-cast-btn').addEventListener('click', () => {
+    saveSpellEdits();
     const levelSelect = document.getElementById('spell-level-select');
     const castLevel = levelSelect ? Number(levelSelect.value) : spell.level;
     
