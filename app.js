@@ -292,14 +292,14 @@ function render() {
       <!-- 3-column stat block grid -->
       <div class="stat-block-grid">
         <!-- Column 1: Abilities & Core Stats -->
-        <div class="stat-column" style="color:#333;font-size:0.9em;">
+        <div class="stat-column" style="font-size:0.9em;">
           <h4>Abilities</h4>
           <div class="ability-grid">
             ${['str','dex','con','int','wis','cha'].map(k => `
               <div>
                 <label>${k.toUpperCase()}</label>
                 <input type="number" data-id="${c.id}" data-field="${k}.score" value="${c[k]?.score || 10}" style="width:100%;box-sizing:border-box;">
-                <div>Mod: ${(c[k]?.mod || 0) >= 0 ? '+' : ''}${c[k]?.mod || 0}</div>
+                <div style="color:#fff;">Mod: ${(c[k]?.mod || 0) >= 0 ? '+' : ''}${c[k]?.mod || 0}</div>
                 <input type="number" placeholder="save" data-id="${c.id}" data-field="${k}.save" value="${c[k]?.save || 0}" style="width:100%;box-sizing:border-box;">
               </div>`).join('')}
           </div>
