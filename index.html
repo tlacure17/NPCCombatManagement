@@ -17,7 +17,13 @@
     .slot-grid button:hover { background:#64748b; }
     .entry-list { margin:4px 0; }
     .entry-list .entry-row { display:flex; gap:4px; align-items:flex-start; margin-bottom:4px; }
-    .entry-list textarea { flex:1; min-height:48px; }
+    .entry-list textarea {
+      flex:1;
+      min-height:48px;
+      resize:vertical;
+      white-space:pre-wrap;
+      overflow-wrap:anywhere;
+    }
     input[type="text"], input[type="number"], select, textarea { background:#1e293b !important; border:1px solid #475569 !important; border-radius:4px !important; color:#fff !important; padding:4px 6px !important; }
     input[type="text"]::placeholder, input[type="number"]::placeholder { color:#94a3b8; }
     .stat-block-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid #334155; }
