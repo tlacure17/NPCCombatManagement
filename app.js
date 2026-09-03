@@ -306,7 +306,7 @@ function render() {
         </div>
 
         <!-- Column 2: Defenses & Utility -->
-        <div class="stat-column" style="color:#333;font-size:0.9em;">
+        <div class="stat-column" style="font-size:0.9em;">
           <h4>Defenses</h4>
           <label>Resistances</label>
           <input type="text" data-id="${c.id}" data-field="resistances" value="${escapeHtml((c.resistances||[]).join(', '))}" style="width:100%;box-sizing:border-box;"><br>
@@ -329,7 +329,7 @@ function render() {
         </div>
 
         <!-- Column 3: Combat Text -->
-        <div class="stat-column" style="color:#333;font-size:0.9em;">
+        <div class="stat-column" style="font-size:0.9em;">
           <h4>Traits</h4>
           <div class="entry-list">
             ${(c.traits||[]).map((e,i) => `
@@ -390,7 +390,7 @@ function render() {
         </div>
 
         <!-- Column 4: Spellcasting -->
-        <div class="stat-column" style="color:#333;font-size:0.9em;">
+        <div class="stat-column" style="font-size:0.9em;">
           <h4>Spellcasting</h4>
           Ability:<select data-id="${c.id}" data-field="spellcasting.spellcastingAbility">
             ${['none','int','wis','cha'].map(a=>`<option value="${a}"${c.spellcasting?.spellcastingAbility===a?' selected':''}>${a.toUpperCase()}</option>`).join('')}
@@ -420,7 +420,7 @@ function render() {
         </div>
 
         <!-- Column 5: Innate Spellcasting -->
-        <div class="stat-column" style="color:#333;font-size:0.9em;">
+        <div class="stat-column" style="font-size:0.9em;">
           <h4>Innate Spellcasting</h4>
           Ability:<select data-id="${c.id}" data-field="spellcasting.innateAbility">
             ${['none','int','wis','cha'].map(a=>`<option value="${a}"${c.spellcasting?.innateAbility===a?' selected':''}>${a.toUpperCase()}</option>`).join('')}
