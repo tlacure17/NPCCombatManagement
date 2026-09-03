@@ -265,10 +265,12 @@ function render() {
 
     const slotGrid = Object.entries(c.spellcasting?.spellSlots || {}).map(([lvl,s],i) => `
       <div>
-        <label>${i+1}</label>
-        <button type="button" data-id="${c.id}" data-action="slot-use" data-level="${lvl}">-</button>
-        <span id="slot-${c.id}-${lvl}" class="slot-display">${s.used}/${s.total}</span>
-        <button type="button" data-id="${c.id}" data-action="slot-restore" data-level="${lvl}">+</button>
+        <label>Lvl ${i+1}</label>
+        <div class="slot-display">${s.used}/${s.total}</div>
+        <div style="display:flex;gap:1px;">
+          <button type="button" data-id="${c.id}" data-action="slot-use" data-level="${lvl}" title="Use slot">−</button>
+          <button type="button" data-id="${c.id}" data-action="slot-restore" data-level="${lvl}" title="Restore slot">+</button>
+        </div>
       </div>`).join('');
 
     card.className = `rounded-lg border p-4 ${isCurrent ? "border-indigo-500 bg-slate-900" : "border-slate-800 bg-slate-900"}`;

@@ -9,15 +9,22 @@
     .ability-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:4px; text-align:center; }
     .ability-grid label { font-weight:bold; font-size:0.75em; }
     .ability-grid input { width:100%; box-sizing:border-box; }
-    .slot-grid { display:grid; grid-template-columns:repeat(9,1fr); gap:4px; }
+    .slot-grid { display:grid; grid-template-columns:repeat(9,1fr); gap:6px; }
+    .slot-grid > div { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:0.75em; }
+    .slot-grid label { font-weight:bold; color:#fff; }
+    .slot-grid .slot-display { color:#fff; font-weight:bold; }
+    .slot-grid button { padding:2px 6px; font-size:0.7em; border-radius:3px; background:#475569; border:none; color:#fff; cursor:pointer; }
+    .slot-grid button:hover { background:#64748b; }
     .entry-list { margin:4px 0; }
     .entry-list .entry-row { display:flex; gap:4px; align-items:flex-start; margin-bottom:4px; }
     .entry-list textarea { flex:1; min-height:48px; }
+    input[type="text"], input[type="number"], select, textarea { background:#1e293b !important; border:1px solid #475569 !important; border-radius:4px !important; color:#fff !important; padding:4px 6px !important; }
+    input[type="text"]::placeholder, input[type="number"]::placeholder { color:#94a3b8; }
     .stat-block-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; margin-top:12px; padding-top:12px; border-top:1px solid #334155; }
     .stat-column h4 { margin:4px 0 2px; font-size:0.85em; text-transform:uppercase; color:#fff; }
     .stat-column { color:#fff; }
-    .stat-column label { color:#fff; }
-    .stat-column input, .stat-column select, .stat-column textarea { color:#000; }
+    .stat-column label { color:#fff; display:block; margin-bottom:2px; }
+    .stat-column input, .stat-column select, .stat-column textarea { color:#fff; }
     
     #spell-modal { pointer-events: auto; }
     #spell-modal div[style*="background:#1e293b"] { pointer-events: auto; }
