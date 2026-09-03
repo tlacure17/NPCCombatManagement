@@ -278,7 +278,7 @@ function render() {
       <!-- Top bar -->
       <div class="flex flex-wrap items-center gap-2 mb-4 text-sm">
         <h3 class="font-semibold text-lg flex-shrink-0">${c.name}</h3>
-        <span class="text-slate-400">Init ${c.initiative}</span>
+        <label class="text-slate-400" style="display:flex;align-items:center;gap:4px;">Init<input type="number" data-id="${c.id}" data-field="initiative" value="${c.initiative}" style="width:40px;padding:2px 4px;border-radius:3px;background:#1e293b;border:1px solid #475569;color:#fff;"></label>
         <span class="text-slate-300 font-mono">HP: ${c.hp.current}/${c.hp.max}${c.tempHp > 0 ? ` (+${c.tempHp})` : ''}</span>
         <div class="flex gap-1 items-center">
           <input id="hp-input-${c.id}" type="number" value="1" placeholder="Amt" class="w-12 px-1 py-0.5 rounded bg-slate-800 border border-slate-700 text-xs" />
@@ -305,6 +305,16 @@ function render() {
                 <input type="number" placeholder="save" data-id="${c.id}" data-field="${k}.save" value="${c[k]?.save || 0}" style="width:100%;box-sizing:border-box;">
               </div>`).join('')}
           </div>
+           
+           <h4 style="margin-top:12px;">Saving Throws</h4>
+           <div class="ability-grid">
+             ${['str','dex','con','int','wis','cha'].map(k => `
+               <div>
+                 <label style="font-size:0.7em;">${k.toUpperCase()}</label>
+                 <label style="display:flex;align-items:center;gap:2px;margin-bottom:2px;"><input type="checkbox" data-id="${c.id}" data-field="${k}.proficientSave" ${c[k]?.proficientSave ? 'checked' : ''} style="width:14px;height:14px;"> Prof</label>
+                 <input type="number" data-id="${c.id}" data-field="${k}.saveMod" value="${c[k]?.saveMod || 0}" style="width:100%;box-sizing:border-box;font-size:0.85em;">
+               </div>`).join('')}
+           </div>
         </div>
 
         <!-- Column 2: Defenses & Utility -->
