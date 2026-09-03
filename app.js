@@ -278,7 +278,7 @@ function render() {
       <!-- Top bar -->
       <div class="flex flex-wrap items-center gap-2 mb-4 text-sm">
         <h3 class="font-semibold text-lg flex-shrink-0">${c.name}</h3>
-        <label class="text-slate-400" style="display:flex;align-items:center;gap:4px;">Init<input type="number" data-id="${c.id}" data-field="initiative" value="${c.initiative}" style="width:40px;padding:2px 4px;border-radius:3px;background:#1e293b;border:1px solid #475569;color:#fff;"></label>
+        <label class="text-slate-400" style="display:flex;align-items:center;gap:4px;">Init<input type="number" data-id="${c.id}" data-field="initiative" value="${c.initiative}" style="width:64px;padding:2px 6px;border-radius:3px;background:#1e293b;border:1px solid #475569;color:#fff;"></label>
         <span class="text-slate-300 font-mono">HP: ${c.hp.current}/${c.hp.max}${c.tempHp > 0 ? ` (+${c.tempHp})` : ''}</span>
         <div class="flex gap-1 items-center">
           <input id="hp-input-${c.id}" type="number" value="1" placeholder="Amt" class="w-12 px-1 py-0.5 rounded bg-slate-800 border border-slate-700 text-xs" />
@@ -1172,3 +1172,4 @@ bootstrap().catch((error) => {
   console.error(error);
   alert("Failed to start app. Check console.");
 });
+
