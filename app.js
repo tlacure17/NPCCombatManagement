@@ -346,7 +346,7 @@ function render() {
           <div class="entry-list">
             ${(c.traits||[]).map((e,i) => `
               <div class="entry-row">
-                <input type="text" placeholder="name" data-id="${c.id}" data-field="traits[${i}].name" value="${escapeHtml(e.name||'')}" style="width:120px">
+                <input type="text" placeholder="name" data-id="${c.id}" data-field="traits[${i}].name" value="${escapeHtml(e.name||'')}" style="min-width:160px;width:30%;resize:horizontal;">
                 <textarea data-id="${c.id}" data-field="traits[${i}].text">${escapeHtml(e.text||'')}</textarea>
                 <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="traits" data-index="${i}">✕</button>
               </div>`).join('')}
@@ -357,7 +357,7 @@ function render() {
           <div class="entry-list">
             ${(c.actions||[]).map((e,i) => `
               <div class="entry-row">
-                <input type="text" placeholder="name" data-id="${c.id}" data-field="actions[${i}].name" value="${escapeHtml(e.name||'')}" style="width:120px">
+                <input type="text" placeholder="name" data-id="${c.id}" data-field="actions[${i}].name" value="${escapeHtml(e.name||'')}" style="min-width:160px;width:30%;resize:horizontal;">
                 <textarea data-id="${c.id}" data-field="actions[${i}].text">${escapeHtml(e.text||'')}</textarea>
                 <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="actions" data-index="${i}">✕</button>
               </div>`).join('')}
@@ -368,7 +368,7 @@ function render() {
           <div class="entry-list">
             ${(c.bonusActions||[]).map((e,i) => `
               <div class="entry-row">
-                <input type="text" placeholder="name" data-id="${c.id}" data-field="bonusActions[${i}].name" value="${escapeHtml(e.name||'')}" style="width:120px">
+                <input type="text" placeholder="name" data-id="${c.id}" data-field="bonusActions[${i}].name" value="${escapeHtml(e.name||'')}" style="min-width:160px;width:30%;resize:horizontal;">
                 <textarea data-id="${c.id}" data-field="bonusActions[${i}].text">${escapeHtml(e.text||'')}</textarea>
                 <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="bonusActions" data-index="${i}">✕</button>
               </div>`).join('')}
@@ -379,7 +379,7 @@ function render() {
           <div class="entry-list">
             ${(c.reactions||[]).map((e,i) => `
               <div class="entry-row">
-                <input type="text" placeholder="name" data-id="${c.id}" data-field="reactions[${i}].name" value="${escapeHtml(e.name||'')}" style="width:120px">
+                <input type="text" placeholder="name" data-id="${c.id}" data-field="reactions[${i}].name" value="${escapeHtml(e.name||'')}" style="min-width:160px;width:30%;resize:horizontal;">
                 <textarea data-id="${c.id}" data-field="reactions[${i}].text">${escapeHtml(e.text||'')}</textarea>
                 <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="reactions" data-index="${i}">✕</button>
               </div>`).join('')}
@@ -392,7 +392,7 @@ function render() {
           <div class="entry-list">
             ${(c.legendaryActions||[]).map((e,i) => `
               <div class="entry-row">
-                <input type="text" placeholder="name" data-id="${c.id}" data-field="legendaryActions[${i}].name" value="${escapeHtml(e.name||'')}" style="width:100px">
+                <input type="text" placeholder="name" data-id="${c.id}" data-field="legendaryActions[${i}].name" value="${escapeHtml(e.name||'')}" style="min-width:160px;width:28%;resize:horizontal;">
                 Cost:<input type="number" data-id="${c.id}" data-field="legendaryActions[${i}].cost" value="${e.cost||1}" style="width:35px">
                 <textarea data-id="${c.id}" data-field="legendaryActions[${i}].text">${escapeHtml(e.text||'')}</textarea>
                 <button type="button" data-id="${c.id}" data-action="remove-entry" data-field="legendaryActions" data-index="${i}">✕</button>
@@ -1172,4 +1172,5 @@ bootstrap().catch((error) => {
   console.error(error);
   alert("Failed to start app. Check console.");
 });
+
 
