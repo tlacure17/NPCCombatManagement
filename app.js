@@ -1,6 +1,8 @@
 const STORAGE_KEY = "npc-combat-manager:v1";
+const SCHEMA_VERSION = 2;
 
 const state = {
+  schemaVersion: SCHEMA_VERSION,
   baseline: [],
   active: [],
   meta: {
@@ -114,6 +116,42 @@ function load() {
       return false;
     }
 
+    // Handle schema migration: if no schemaVersion, treat as v1 and migrate
+    const version = parsed.schemaVersion || 1;
+    
+    // Migrate from v1 to v2: normalize spell slots to canonical format in spellcasting
+    if (version < 2) {
+      parsed.active = parsed.active.map(c => {
+        if (c.spellcasting && !c.spellcasting.spellSlots) {
+          c.spellcasting.spellSlots = {};
+        }
+        if (!c.spellcasting) {
+          c.spellcasting = { spellSlots: {} };
+        }
+        // Migrate old spellSlots from root to canonical format in spellcasting
+        if (c.spellSlots && !c.spellcasting.spellSlots || Object.keys(c.spellcasting.spellSlots || {}).length === 0) {
+          c.spellcasting.spellSlots = normalizeSpellSlots(c.spellSlots);
+        }
+        delete c.spellSlots; // Remove old slot format from root
+        return c;
+      });
+      
+      parsed.baseline = parsed.baseline.map(c => {
+        if (c.spellcasting && !c.spellcasting.spellSlots) {
+          c.spellcasting.spellSlots = {};
+        }
+        if (!c.spellcasting) {
+          c.spellcasting = { spellSlots: {} };
+        }
+        if (c.spellSlots && !c.spellcasting.spellSlots || Object.keys(c.spellcasting.spellSlots || {}).length === 0) {
+          c.spellcasting.spellSlots = normalizeSpellSlots(c.spellSlots);
+        }
+        delete c.spellSlots;
+        return c;
+      });
+    }
+
+    state.schemaVersion = SCHEMA_VERSION;
     state.active = parsed.active;
     state.baseline = parsed.baseline;
     state.meta = parsed.meta;
@@ -141,7 +179,6 @@ function normalizeCombatants(items) {
       },
       tempHp: Number(item.tempHp || 0),
       conditions: Array.isArray(item.conditions) ? item.conditions : [],
-      spellSlots: Array.isArray(item.spellSlots) ? item.spellSlots : [],
       abilities: Array.isArray(item.abilities) ? item.abilities : [],
       sourceUrl: item.sourceUrl || "",
       notes: item.notes || "",
@@ -177,6 +214,12 @@ function normalizeCombatants(items) {
           innateAttackBonus: 0,
           innateSaveDC: 0
         };
+        // Normalize spell slots to canonical format
+        if (!sc.spellSlots || typeof sc.spellSlots !== 'object' || Array.isArray(sc.spellSlots)) {
+          sc.spellSlots = normalizeSpellSlots(sc.spellSlots);
+        } else {
+          sc.spellSlots = normalizeSpellSlots(sc.spellSlots);
+        }
         // Migrate old url-based spells to rawText-based
         if (Array.isArray(sc.spells)) {
           sc.spells = sc.spells.map(s => ({
@@ -406,18 +449,100 @@ function parseHp(raw) {
   return { current: Math.max(0, Math.min(current, max)), max };
 }
 
-function parseSlots(raw) {
-  if (!raw.trim()) return [];
+function normalizeSpellSlots(spellSlots) {
+  const canonical = {
+    level1: { total: 0, used: 0 },
+    level2: { total: 0, used: 0 },
+    level3: { total: 0, used: 0 },
+    level4: { total: 0, used: 0 },
+    level5: { total: 0, used: 0 },
+    level6: { total: 0, used: 0 },
+    level7: { total: 0, used: 0 },
+    level8: { total: 0, used: 0 },
+    level9: { total: 0, used: 0 },
+  };
 
-  return raw.split(",").map((chunk) => {
+  if (!spellSlots) return canonical;
+
+  // Handle old array format: [{level: N, current: X, max: Y}, ...]
+  if (Array.isArray(spellSlots)) {
+    spellSlots.forEach(slot => {
+      if (slot && typeof slot === 'object') {
+        const lvl = slot.level || slot.lvl;
+        if (lvl && lvl >= 1 && lvl <= 9) {
+          const key = `level${lvl}`;
+          canonical[key] = {
+            total: Math.max(0, Number(slot.max || slot.total || 0)),
+            used: Math.max(0, Math.min(Number(slot.current || slot.used || 0), Number(slot.max || slot.total || 0)))
+          };
+        }
+      }
+    });
+    return canonical;
+  }
+
+  // Handle object format with numeric or string keys: {"1": 5, "2": 3, ...} or {level1: {...}, ...}
+  if (typeof spellSlots === 'object') {
+    for (const key in spellSlots) {
+      const value = spellSlots[key];
+      let lvl = null;
+      
+      // Check if key is already levelN format
+      if (key.match(/^level(\d+)$/)) {
+        lvl = parseInt(key.replace('level', ''));
+      } else {
+        // Try numeric keys "1", "2", etc
+        lvl = parseInt(key);
+      }
+
+      if (lvl && lvl >= 1 && lvl <= 9) {
+        const levelKey = `level${lvl}`;
+        // If value is a number, treat as total slots
+        if (typeof value === 'number') {
+          canonical[levelKey] = { total: Math.max(0, value), used: 0 };
+        } else if (value && typeof value === 'object') {
+          // If value is object with total/used or max/current
+          canonical[levelKey] = {
+            total: Math.max(0, Number(value.total || value.max || 0)),
+            used: Math.max(0, Math.min(Number(value.used || value.current || 0), Number(value.total || value.max || 0)))
+          };
+        }
+      }
+    }
+  }
+
+  return canonical;
+}
+
+function parseSlots(raw) {
+  if (!raw.trim()) return {};
+
+  const result = {
+    level1: { total: 0, used: 0 },
+    level2: { total: 0, used: 0 },
+    level3: { total: 0, used: 0 },
+    level4: { total: 0, used: 0 },
+    level5: { total: 0, used: 0 },
+    level6: { total: 0, used: 0 },
+    level7: { total: 0, used: 0 },
+    level8: { total: 0, used: 0 },
+    level9: { total: 0, used: 0 },
+  };
+
+  raw.split(",").forEach((chunk) => {
     const match = chunk.trim().match(/^L(\d+)\s+(\d+)\/(\d+)$/i);
-    if (!match) throw new Error("Invalid slot format");
-    return {
-      level: Number(match[1]),
-      current: Number(match[2]),
-      max: Number(match[3]),
-    };
+    if (match) {
+      const lvl = Number(match[1]);
+      if (lvl >= 1 && lvl <= 9) {
+        result[`level${lvl}`] = {
+          total: Number(match[3]),
+          used: Math.min(Number(match[2]), Number(match[3]))
+        };
+      }
+    }
   });
+
+  return result;
 }
 
 function parseAbilities(raw) {
@@ -462,7 +587,6 @@ function wireEvents() {
       hp: { current: hpMax, max: hpMax },
       tempHp: 0,
       conditions: [],
-      spellSlots: [],
       abilities: [],
       sourceUrl,
       notes: "",
@@ -491,7 +615,7 @@ function wireEvents() {
         spellSaveDC: 0,
         spellAttackBonus: 0,
         cantrips: "",
-        spellSlots: {},
+        spellSlots: normalizeSpellSlots({}),
         spells: [],
         innateAbility: 'none',
         innateAttackBonus: 0,
@@ -557,6 +681,42 @@ function wireEvents() {
       return;
     }
 
+    // Handle schema migration: if no schemaVersion, treat as v1 and migrate
+    const version = parsed.schemaVersion || 1;
+    
+    // Migrate from v1 to v2: ensure spell slots are in canonical format
+    if (version < 2) {
+      parsed.active = parsed.active.map(c => {
+        if (!c.spellcasting) {
+          c.spellcasting = { spellSlots: {} };
+        }
+        if (!c.spellcasting.spellSlots) {
+          c.spellcasting.spellSlots = {};
+        }
+        // Migrate old spellSlots from root to canonical format in spellcasting
+        if (c.spellSlots && (!c.spellcasting.spellSlots || Object.keys(c.spellcasting.spellSlots || {}).length === 0)) {
+          c.spellcasting.spellSlots = normalizeSpellSlots(c.spellSlots);
+        }
+        delete c.spellSlots; // Remove old slot format from root
+        return c;
+      });
+      
+      parsed.baseline = parsed.baseline.map(c => {
+        if (!c.spellcasting) {
+          c.spellcasting = { spellSlots: {} };
+        }
+        if (!c.spellcasting.spellSlots) {
+          c.spellcasting.spellSlots = {};
+        }
+        if (c.spellSlots && (!c.spellcasting.spellSlots || Object.keys(c.spellcasting.spellSlots || {}).length === 0)) {
+          c.spellcasting.spellSlots = normalizeSpellSlots(c.spellSlots);
+        }
+        delete c.spellSlots;
+        return c;
+      });
+    }
+
+    state.schemaVersion = SCHEMA_VERSION;
     state.active = normalizeCombatants(parsed.active);
     state.baseline = normalizeCombatants(parsed.baseline);
     state.meta = {
@@ -770,7 +930,7 @@ function wireEvents() {
         save();
         return; // skip re-render to prevent DOM reset
       } else if (action === "set-slots") {
-        c.spellSlots = parseSlots(target.value);
+        c.spellcasting.spellSlots = parseSlots(target.value);
       } else if (action === "set-abilities") {
         c.abilities = parseAbilities(target.value);
       } else if (field) {
@@ -915,7 +1075,7 @@ function showSpellModal(combatant, spell) {
     const castLevel = levelSelect ? Number(levelSelect.value) : spell.level;
     
     if (!spell.atWill && castLevel > 0) {
-      const slotKey = `level_${castLevel}`;
+      const slotKey = `level${castLevel}`;
       if (combatant.spellcasting?.spellSlots[slotKey]) {
         if (combatant.spellcasting.spellSlots[slotKey].used < combatant.spellcasting.spellSlots[slotKey].total) {
           combatant.spellcasting.spellSlots[slotKey].used += 1;
@@ -958,6 +1118,7 @@ async function bootstrap() {
     state.baseline = normalizeCombatants(baselineRaw);
     state.active = JSON.parse(JSON.stringify(state.baseline));
     state.meta = { round: 1, turnIndex: 0 };
+    state.schemaVersion = SCHEMA_VERSION;
     save();
   }
 
