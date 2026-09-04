@@ -226,7 +226,8 @@ function normalizeCombatants(items) {
             name: s.name || "",
             level: s.level || 0,
             rawText: s.rawText || s.url || "",
-            atWill: s.atWill || false
+            atWill: s.atWill || false,
+            concentration: Boolean(s.concentration)
           }));
         }
         // Ensure innate fields exist
@@ -418,6 +419,7 @@ function render() {
               return `<div class="entry-row">
                 <button type="button" data-action="cast-spell" data-id="${c.id}" data-index="${i}" style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;flex:1;">[${levelStr}] ${escapeHtml(s.name)}</button>
                 <button type="button" data-action="toggle-atwill" data-id="${c.id}" data-index="${i}" class="px-1.5 rounded ${s.atWill ? 'bg-amber-600 hover:bg-amber-500' : 'bg-slate-700 hover:bg-slate-600'} text-xs" title="Toggle at-will">${s.atWill ? '∞' : '◆'}</button>
+                <button type="button" data-action="toggle-concentration" data-id="${c.id}" data-index="${i}" class="px-1.5 rounded ${s.concentration ? 'bg-violet-600 hover:bg-violet-500' : 'bg-slate-700 hover:bg-slate-600'} text-xs" title="Toggle concentration">${s.concentration ? 'C' : '○'}</button>
                 <button type="button" data-action="remove-spell" data-id="${c.id}" data-index="${i}" class="px-1 rounded bg-slate-700 hover:bg-slate-600 text-xs">✕</button>
               </div>`;
             }).join('')}
@@ -429,6 +431,10 @@ function render() {
             <button type="button" data-action="add-spell" data-id="${c.id}" class="px-1 rounded bg-blue-600 hover:bg-blue-500 text-xs">+</button>
           </div>
           <textarea placeholder="Paste spell text" id="new-spell-rawtext-${c.id}" rows="3" style="width:100%;font-family:monospace;font-size:0.8em;resize:vertical;"></textarea>
+          <label style="display:flex;align-items:center;gap:6px;font-size:0.75em;color:#fff;margin:6px 0 0;">
+            <span>Notes</span>
+          </label>
+          <textarea data-id="${c.id}" data-field="notes" placeholder="Combatant notes..." rows="3" style="width:100%;font-size:0.8em;resize:vertical;">${escapeHtml(c.notes || "")}</textarea>
         </div>
 
         <!-- Column 5: Innate Spellcasting -->
@@ -769,7 +775,7 @@ function wireEvents() {
         const atWill = atWillInput ? atWillInput.checked : false;
         if (name && level >= 0 && level <= 9) {
           if (!c.spellcasting.spells) c.spellcasting.spells = [];
-          c.spellcasting.spells.push({name, level, rawText, atWill});
+          c.spellcasting.spells.push({name, level, rawText, atWill, concentration: false});
           nameInput.value = '';
           levelInput.value = '0';
           rawTextInput.value = '';
@@ -786,6 +792,12 @@ function wireEvents() {
       const spell = c.spellcasting?.spells?.[index];
       if (spell) {
         spell.atWill = !spell.atWill;
+      }
+    } else if (action === "toggle-concentration") {
+      const index = Number(target.dataset.index);
+      const spell = c.spellcasting?.spells?.[index];
+      if (spell) {
+        spell.concentration = !spell.concentration;
       }
     } else if (action === "cast-spell") {
       const index = Number(target.dataset.index);
@@ -1030,6 +1042,9 @@ function showSpellModal(combatant, spell, spellIndex) {
   if (spell.atWill) {
     metaFields.unshift({label: "At-will", value: "∞ (no slot cost)"});
   }
+  if (spell.concentration) {
+    metaFields.unshift({label: "Concentration", value: "Yes"});
+  }
 
   const maxSpellLevel = spell.level === 0 ? 0 : 9;
   const spellLevelOptions = Array.from({length: maxSpellLevel - spell.level + 1}, (_, i) => spell.level + i)
@@ -1054,6 +1069,9 @@ function showSpellModal(combatant, spell, spellIndex) {
         <input id="spell-level-input" type="number" min="0" max="9" value="${Number(spell.level) || 0}" style="width:100%;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:4px;">
         <label style="display:flex;align-items:center;gap:8px;color:#fff;">
           <input id="spell-atwill-input" type="checkbox" ${spell.atWill ? 'checked' : ''}> At-will
+        </label>
+        <label style="display:flex;align-items:center;gap:8px;color:#fff;">
+          <input id="spell-concentration-input" type="checkbox" ${spell.concentration ? 'checked' : ''}> Concentration
         </label>
         <label for="spell-description-input" style="font-weight:600;color:#fff;">Description</label>
         <textarea id="spell-description-input" rows="8" style="width:100%;font-size:0.9em;line-height:1.5;background:#0f172a;padding:10px;border-radius:4px;border:1px solid #334155;color:#e2e8f0;resize:vertical;">${escapeHtml(parsed.description || "")}</textarea>
@@ -1087,12 +1105,14 @@ function showSpellModal(combatant, spell, spellIndex) {
     const nameInput = document.getElementById('spell-name-input');
     const levelInput = document.getElementById('spell-level-input');
     const atWillInput = document.getElementById('spell-atwill-input');
+    const concentrationInput = document.getElementById('spell-concentration-input');
     const descriptionInput = document.getElementById('spell-description-input');
-    if (!nameInput || !levelInput || !atWillInput || !descriptionInput) return;
+    if (!nameInput || !levelInput || !atWillInput || !concentrationInput || !descriptionInput) return;
     const level = Math.min(9, Math.max(0, Number(levelInput.value) || 0));
     liveSpell.name = nameInput.value.trim() || liveSpell.name;
     liveSpell.level = level;
     liveSpell.atWill = atWillInput.checked;
+    liveSpell.concentration = concentrationInput.checked;
     liveSpell.rawText = (descriptionInput.value || "").trim();
     save();
   };
@@ -1102,7 +1122,7 @@ function showSpellModal(combatant, spell, spellIndex) {
     if (e.target === modal) closeModal();
   });
 
-  ['spell-name-input', 'spell-level-input', 'spell-atwill-input', 'spell-description-input'].forEach((id) => {
+  ['spell-name-input', 'spell-level-input', 'spell-atwill-input', 'spell-concentration-input', 'spell-description-input'].forEach((id) => {
     const input = document.getElementById(id);
     if (input) {
       input.addEventListener('input', saveSpellEdits);
@@ -1172,7 +1192,6 @@ bootstrap().catch((error) => {
   console.error(error);
   alert("Failed to start app. Check console.");
 });
-
 
 
 
