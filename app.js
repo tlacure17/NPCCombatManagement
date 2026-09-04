@@ -1,5 +1,5 @@
 const STORAGE_KEY = "npc-combat-manager:v1";
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 const state = {
   schemaVersion: SCHEMA_VERSION,
@@ -224,9 +224,11 @@ function normalizeCombatants(items) {
         if (Array.isArray(sc.spells)) {
           sc.spells = sc.spells.map(s => ({
             name: s.name || "",
-            level: s.level || 0,
-            rawText: s.rawText || s.url || "",
-            atWill: s.atWill || false
+            level: Number(s.level) || 0,
+            rawText: s.rawText || "",
+            atWill: Boolean(s.atWill),
+            concentration: Boolean(s.concentration),
+            url: s.url || ""
           }));
         }
         // Ensure innate fields exist
@@ -418,6 +420,8 @@ function render() {
               return `<div class="entry-row">
                 <button type="button" data-action="cast-spell" data-id="${c.id}" data-index="${i}" style="background:#dbeafe;color:#1e40af;border:1px solid #93c5fd;padding:4px 8px;border-radius:4px;font-size:0.75em;cursor:pointer;flex:1;">[${levelStr}] ${escapeHtml(s.name)}</button>
                 <button type="button" data-action="toggle-atwill" data-id="${c.id}" data-index="${i}" class="px-1.5 rounded ${s.atWill ? 'bg-amber-600 hover:bg-amber-500' : 'bg-slate-700 hover:bg-slate-600'} text-xs" title="Toggle at-will">${s.atWill ? '∞' : '◆'}</button>
+                <button type="button" data-action="toggle-concentration" data-id="${c.id}" data-index="${i}" class="px-1.5 rounded ${s.concentration ? 'bg-fuchsia-600 hover:bg-fuchsia-500' : 'bg-slate-700 hover:bg-slate-600'} text-xs" title="Toggle concentration">${s.concentration ? 'C' : 'c'}</button>
+                ${s.url ? `<a href="${escapeHtml(s.url)}" target="_blank" rel="noopener noreferrer" class="px-1.5 rounded bg-sky-700 hover:bg-sky-600 text-xs" title="Open spell URL">Open</a>` : `<button type="button" data-action="noop" class="px-1.5 rounded bg-slate-800 text-xs opacity-60" title="No URL set" disabled>Open</button>`}
                 <button type="button" data-action="remove-spell" data-id="${c.id}" data-index="${i}" class="px-1 rounded bg-slate-700 hover:bg-slate-600 text-xs">✕</button>
               </div>`;
             }).join('')}
@@ -440,6 +444,10 @@ function render() {
           DC:<input type="number" data-id="${c.id}" data-field="spellcasting.innateSaveDC" value="${c.spellcasting?.innateSaveDC || 0}" style="width:50px;">
           Atk:<input type="number" data-id="${c.id}" data-field="spellcasting.innateAttackBonus" value="${c.spellcasting?.innateAttackBonus || 0}" style="width:50px;"><br>
         </div>
+      </div>
+      <div style="margin-top:8px;">
+        <label style="display:block;color:#cbd5e1;font-size:0.8em;margin-bottom:4px;">Notes</label>
+        <textarea data-id="${c.id}" data-field="notes" style="width:100%;box-sizing:border-box;min-height:90px;resize:vertical;background:#0f172a;border:1px solid #334155;color:#e2e8f0;border-radius:4px;padding:6px;">${escapeHtml(c.notes || "")}</textarea>
       </div>
     `;
 
@@ -769,7 +777,7 @@ function wireEvents() {
         const atWill = atWillInput ? atWillInput.checked : false;
         if (name && level >= 0 && level <= 9) {
           if (!c.spellcasting.spells) c.spellcasting.spells = [];
-          c.spellcasting.spells.push({name, level, rawText, atWill});
+          c.spellcasting.spells.push({name, level, rawText, atWill, concentration: false, url: ""});
           nameInput.value = '';
           levelInput.value = '0';
           rawTextInput.value = '';
@@ -786,6 +794,12 @@ function wireEvents() {
       const spell = c.spellcasting?.spells?.[index];
       if (spell) {
         spell.atWill = !spell.atWill;
+      }
+    } else if (action === "toggle-concentration") {
+      const index = Number(target.dataset.index);
+      const spell = c.spellcasting?.spells?.[index];
+      if (spell) {
+        spell.concentration = !spell.concentration;
       }
     } else if (action === "cast-spell") {
       const index = Number(target.dataset.index);
@@ -1030,6 +1044,9 @@ function showSpellModal(combatant, spell, spellIndex) {
   if (spell.atWill) {
     metaFields.unshift({label: "At-will", value: "∞ (no slot cost)"});
   }
+  if (spell.concentration) {
+    metaFields.unshift({label: "Concentration", value: "Yes"});
+  }
 
   const maxSpellLevel = spell.level === 0 ? 0 : 9;
   const spellLevelOptions = Array.from({length: maxSpellLevel - spell.level + 1}, (_, i) => spell.level + i)
@@ -1055,6 +1072,11 @@ function showSpellModal(combatant, spell, spellIndex) {
         <label style="display:flex;align-items:center;gap:8px;color:#fff;">
           <input id="spell-atwill-input" type="checkbox" ${spell.atWill ? 'checked' : ''}> At-will
         </label>
+        <label style="display:flex;align-items:center;gap:8px;color:#fff;">
+          <input id="spell-concentration-input" type="checkbox" ${spell.concentration ? 'checked' : ''}> Concentration
+        </label>
+        <label for="spell-url-input" style="font-weight:600;color:#fff;">URL</label>
+        <input id="spell-url-input" type="url" value="${escapeHtml(spell.url || "")}" placeholder="https://..." style="width:100%;padding:6px;background:#0f172a;color:#e2e8f0;border:1px solid #334155;border-radius:4px;">
         <label for="spell-description-input" style="font-weight:600;color:#fff;">Description</label>
         <textarea id="spell-description-input" rows="8" style="width:100%;font-size:0.9em;line-height:1.5;background:#0f172a;padding:10px;border-radius:4px;border:1px solid #334155;color:#e2e8f0;resize:vertical;">${escapeHtml(parsed.description || "")}</textarea>
       </div>
@@ -1087,13 +1109,17 @@ function showSpellModal(combatant, spell, spellIndex) {
     const nameInput = document.getElementById('spell-name-input');
     const levelInput = document.getElementById('spell-level-input');
     const atWillInput = document.getElementById('spell-atwill-input');
+    const concentrationInput = document.getElementById('spell-concentration-input');
     const descriptionInput = document.getElementById('spell-description-input');
-    if (!nameInput || !levelInput || !atWillInput || !descriptionInput) return;
+    const urlInput = document.getElementById('spell-url-input');
+    if (!nameInput || !levelInput || !atWillInput || !concentrationInput || !descriptionInput || !urlInput) return;
     const level = Math.min(9, Math.max(0, Number(levelInput.value) || 0));
     liveSpell.name = nameInput.value.trim() || liveSpell.name;
     liveSpell.level = level;
     liveSpell.atWill = atWillInput.checked;
+    liveSpell.concentration = concentrationInput.checked;
     liveSpell.rawText = (descriptionInput.value || "").trim();
+    liveSpell.url = (urlInput.value || "").trim();
     save();
   };
   
@@ -1102,7 +1128,7 @@ function showSpellModal(combatant, spell, spellIndex) {
     if (e.target === modal) closeModal();
   });
 
-  ['spell-name-input', 'spell-level-input', 'spell-atwill-input', 'spell-description-input'].forEach((id) => {
+  ['spell-name-input', 'spell-level-input', 'spell-atwill-input', 'spell-concentration-input', 'spell-url-input', 'spell-description-input'].forEach((id) => {
     const input = document.getElementById(id);
     if (input) {
       input.addEventListener('input', saveSpellEdits);
@@ -1172,7 +1198,5 @@ bootstrap().catch((error) => {
   console.error(error);
   alert("Failed to start app. Check console.");
 });
-
-
 
 
