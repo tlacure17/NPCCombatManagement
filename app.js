@@ -1,5 +1,6 @@
 const STORAGE_KEY = "npc-combat-manager:v1";
 const SCHEMA_VERSION = 3;
+const collapsedCombatants = new Set();
 
 const state = {
   schemaVersion: SCHEMA_VERSION,
@@ -265,6 +266,7 @@ function render() {
   active.forEach((c, idx) => {
     const card = document.createElement("article");
     const isCurrent = idx === state.meta.turnIndex;
+    const isCollapsed = collapsedCombatants.has(c.id);
 
     const slotGrid = Object.entries(c.spellcasting?.spellSlots || {}).map(([lvl,s],i) => `
       <div>
@@ -279,7 +281,7 @@ function render() {
     card.className = `rounded-lg border p-4 ${isCurrent ? "border-indigo-500 bg-slate-900" : "border-slate-800 bg-slate-900"}`;
     card.innerHTML = `
       <!-- Top bar -->
-      <div class="flex flex-wrap items-center gap-2 mb-4 text-sm">
+      <div class="flex flex-wrap items-center gap-2 ${isCollapsed ? "mb-0" : "mb-4"} text-sm">
         <h3 class="font-semibold text-lg flex-shrink-0">${c.name}</h3>
         <label class="text-slate-400" style="display:flex;align-items:center;gap:4px;">Init<input type="number" data-id="${c.id}" data-field="initiative" value="${c.initiative}" style="width:64px;padding:2px 6px;border-radius:3px;background:#1e293b;border:1px solid #475569;color:#fff;"></label>
         <label class="text-slate-400" style="display:flex;align-items:center;gap:4px;">Speed<input type="number" min="0" data-id="${c.id}" data-field="speed" value="${c.speed}" style="width:64px;padding:2px 6px;border-radius:3px;background:#1e293b;border:1px solid #475569;color:#fff;"></label>
@@ -291,10 +293,12 @@ function render() {
           <button data-action="temp-hp" data-id="${c.id}" class="px-1.5 py-0.5 rounded bg-blue-700 hover:bg-blue-600 text-xs">Temp</button>
         </div>
         <input data-action="set-conditions" data-id="${c.id}" type="text" placeholder="Conditions" value="${c.conditions.join(", ")}" class="flex-1 min-w-48 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-xs" />
+        <button type="button" data-action="toggle-details" data-id="${c.id}" aria-expanded="${!isCollapsed}" class="px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-xs">${isCollapsed ? "Show details" : "Hide details"}</button>
         ${isCurrent ? '<span class="text-indigo-400 font-bold">TURN</span>' : ''}
         <button data-action="remove" data-id="${c.id}" class="px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-xs">Remove</button>
       </div>
 
+      <div${isCollapsed ? " hidden" : ""}>
       <!-- 3-column stat block grid -->
       <div class="stat-block-grid">
         <!-- Column 1: Abilities & Core Stats -->
@@ -450,6 +454,7 @@ function render() {
       <div style="margin-top:8px;">
         <label style="display:block;color:#cbd5e1;font-size:0.8em;margin-bottom:4px;">Notes</label>
         <textarea data-id="${c.id}" data-field="notes" style="width:100%;box-sizing:border-box;min-height:90px;resize:vertical;background:#0f172a;border:1px solid #334155;color:#e2e8f0;border-radius:4px;padding:6px;">${escapeHtml(c.notes || "")}</textarea>
+      </div>
       </div>
     `;
 
@@ -762,6 +767,13 @@ function wireEvents() {
     const id = target.dataset.id;
 
     if (!action || !id) return;
+
+    if (action === "toggle-details") {
+      if (collapsedCombatants.has(id)) collapsedCombatants.delete(id);
+      else collapsedCombatants.add(id);
+      render();
+      return;
+    }
 
     const found = findCombatant(id);
     if (!found) return;
