@@ -1,0 +1,106 @@
+{
+    "Source":  "",
+    "Type":  "",
+    "HP":  {
+               "Value":  71,
+               "Notes":  ""
+           },
+    "AC":  {
+               "Value":  10,
+               "Notes":  ""
+           },
+    "InitiativeModifier":  13,
+    "InitiativeAdvantage":  false,
+    "Speed":  [
+
+              ],
+    "Abilities":  {
+                      "Str":  12,
+                      "Dex":  20,
+                      "Con":  14,
+                      "Int":  13,
+                      "Wis":  20,
+                      "Cha":  10
+                  },
+    "DamageVulnerabilities":  [
+
+                              ],
+    "DamageResistances":  [
+
+                          ],
+    "DamageImmunities":  [
+
+                         ],
+    "ConditionImmunities":  [
+
+                            ],
+    "Saves":  [
+
+              ],
+    "Skills":  [
+                   "Acrobatics +7",
+                   "Athletics +3",
+                   "Perception +7",
+                   "Stealth +7"
+               ],
+    "Senses":  [
+
+               ],
+    "Languages":  [
+                      "Common"
+                  ],
+    "Challenge":  "",
+    "Traits":  [
+                   {
+                       "name":  "Supernatural Resistance",
+                       "text":  "Advantage on saving throws against powers, spells, and supernatural effects."
+                   },
+                   {
+                       "name":  "Evasion",
+                       "text":  "When subjected to a Dex save for half damage, take no damage on success and half on failure."
+                   },
+                   {
+                       "name":  "Exploit Opening (3/Day)",
+                       "text":  "When Qar makes an attack, he has Advantage on the attack roll."
+                   }
+               ],
+    "Actions":  [
+                    {
+                        "name":  "Multiattack",
+                        "text":  "Three Unarmed Strike attacks. If all three hit the same creature, target is Dazed until end of its next turn."
+                    },
+                    {
+                        "name":  "Unarmed Strike",
+                        "text":  "Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 8 (1d6 + 5) bludgeoning."
+                    }
+                ],
+    "BonusActions":  [
+                         {
+                             "name":  "Iron Ring",
+                             "text":  "2/day. Teleport to/from the Cyst as described in the stat block."
+                         }
+                     ],
+    "Reactions":  [
+                      {
+                          "name":  "No Survivors",
+                          "text":  "When Qar can see an enemy drop to 0 HP, Qar moves up to his Speed. If he ends within 5 ft. of an enemy, he can make an Unarmed Strike."
+                      },
+                      {
+                          "name":  "Voice Stealer",
+                          "text":  "3/day. When an enemy Qar can hear within 30 ft. finishes casting a spell with a verbal component, it must succeed on DC 15 Intelligence save or be unable to speak for 1 minute (save ends end of turn)."
+                      }
+                  ],
+    "LegendaryActions":  [
+                             {
+                                 "name":  "Party Tactics",
+                                 "text":  "Qar and each ally within 60 ft who can see or hear can move up to their speed."
+                             }
+                         ],
+    "MythicActions":  [
+
+                      ],
+    "Description":  "Mobile skirmisher. Hunt casters/isolated PCs, use Voice Stealer to interrupt key verbal spells, and keep pressure on anyone trying to reach the Supervisor. Iron Ring 2/day.",
+    "Player":  "Qar, Master of Jackals",
+    "Version":  "3.17.1",
+    "ImageURL":  ""
+}

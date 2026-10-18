@@ -1,0 +1,99 @@
+{
+    "Source":  "",
+    "Type":  "",
+    "HP":  {
+               "Value":  78,
+               "Notes":  ""
+           },
+    "AC":  {
+               "Value":  10,
+               "Notes":  ""
+           },
+    "InitiativeModifier":  14,
+    "InitiativeAdvantage":  false,
+    "Speed":  [
+
+              ],
+    "Abilities":  {
+                      "Str":  10,
+                      "Dex":  20,
+                      "Con":  14,
+                      "Int":  15,
+                      "Wis":  12,
+                      "Cha":  15
+                  },
+    "DamageVulnerabilities":  [
+
+                              ],
+    "DamageResistances":  [
+
+                          ],
+    "DamageImmunities":  [
+
+                         ],
+    "ConditionImmunities":  [
+
+                            ],
+    "Saves":  [
+
+              ],
+    "Skills":  [
+                   "Acrobatics +7",
+                   "Deception +4",
+                   "Insight +3",
+                   "Perception +3",
+                   "Stealth +9"
+               ],
+    "Senses":  [
+
+               ],
+    "Languages":  [
+                      "Common"
+                  ],
+    "Challenge":  "",
+    "Traits":  [
+                   {
+                       "name":  "Exploit Opening (3/Day)",
+                       "text":  "When Cloak makes an attack, she has Advantage on the attack roll."
+                   }
+               ],
+    "Actions":  [
+                    {
+                        "name":  "Shortsword",
+                        "text":  "Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 8 (1d6 + 5) piercing + 3 (1d6) poison; target poisoned until start of Cloak\u0027s next turn."
+                    },
+                    {
+                        "name":  "Light Crossbow",
+                        "text":  "Ranged Weapon Attack: +7 to hit, range 80/320 ft., one target. Hit: 8 (1d8 + 5) piercing; if target has not taken a turn since end of Cloak\u0027s last turn, add 7 (2d6) piercing."
+                    }
+                ],
+    "BonusActions":  [
+                         {
+                             "name":  "Cunning Action",
+                             "text":  "Dash, Disengage, or Hide."
+                         },
+                         {
+                             "name":  "Iron Ring",
+                             "text":  "2/day. Teleport to/from the Cyst as described in the stat block."
+                         }
+                     ],
+    "Reactions":  [
+                      {
+                          "name":  "You Should\u0027ve Been Watching Me",
+                          "text":  "When a creature within 5 ft. hits one of Cloak\u0027s allies with an attack, Cloak makes a Shortsword attack against the attacker; if it hits, the ally and attacker can be swapped."
+                      }
+                  ],
+    "LegendaryActions":  [
+                             {
+                                 "name":  "Assassin\u0027s Strike",
+                                 "text":  "Moves up to her speed and makes Shortsword attack. On hit, deals 6d10 piercing instead of normal damage, and it does NOT inflict poisoned. On miss, deals half damage."
+                             }
+                         ],
+    "MythicActions":  [
+
+                      ],
+    "Description":  "Ambusher/protector. Start hidden if possible, use poisoned Shortswords to pressure one target, and use the reaction to punish anyone who attacks her allies. Iron Ring 2/day.",
+    "Player":  "Cloak",
+    "Version":  "3.17.1",
+    "ImageURL":  ""
+}

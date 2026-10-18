@@ -173,6 +173,7 @@ function normalizeCombatants(items) {
       id: item.id || uid(),
       name: item.name || "Unknown",
       initiative: Number(item.initiative || 0),
+      speed: Number(item.speed ?? 30),
       hp: {
         current: Number(item.hp?.current ?? item.hp?.max ?? 1),
         max: Number(item.hp?.max ?? 1),
@@ -279,6 +280,7 @@ function render() {
       <div class="flex flex-wrap items-center gap-2 mb-4 text-sm">
         <h3 class="font-semibold text-lg flex-shrink-0">${c.name}</h3>
         <label class="text-slate-400" style="display:flex;align-items:center;gap:4px;">Init<input type="number" data-id="${c.id}" data-field="initiative" value="${c.initiative}" style="width:64px;padding:2px 6px;border-radius:3px;background:#1e293b;border:1px solid #475569;color:#fff;"></label>
+        <label class="text-slate-400" style="display:flex;align-items:center;gap:4px;">Speed<input type="number" min="0" data-id="${c.id}" data-field="speed" value="${c.speed}" style="width:64px;padding:2px 6px;border-radius:3px;background:#1e293b;border:1px solid #475569;color:#fff;"></label>
         <span class="text-slate-300 font-mono">HP: ${c.hp.current}/${c.hp.max}${c.tempHp > 0 ? ` (+${c.tempHp})` : ''}</span>
         <div class="flex gap-1 items-center">
           <input id="hp-input-${c.id}" type="number" value="1" placeholder="Amt" class="w-12 px-1 py-0.5 rounded bg-slate-800 border border-slate-700 text-xs" />
@@ -587,6 +589,7 @@ function wireEvents() {
     const form = new FormData(els.addForm);
     const name = String(form.get("name") || "").trim();
     const initiative = Number(form.get("initiative") || 0);
+    const speed = Number(form.get("speed") || 0);
     const hpMax = Number(form.get("hpMax") || 1);
     const sourceUrl = String(form.get("sourceUrl") || "").trim();
 
@@ -596,6 +599,7 @@ function wireEvents() {
       id: uid(),
       name,
       initiative,
+      speed,
       hp: { current: hpMax, max: hpMax },
       tempHp: 0,
       conditions: [],

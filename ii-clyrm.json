@@ -1,0 +1,86 @@
+{
+    "Source":  "",
+    "Type":  "",
+    "HP":  {
+               "Value":  36,
+               "Notes":  ""
+           },
+    "AC":  {
+               "Value":  10,
+               "Notes":  ""
+           },
+    "InitiativeModifier":  17,
+    "InitiativeAdvantage":  false,
+    "Speed":  [
+
+              ],
+    "Abilities":  {
+                      "Str":  10,
+                      "Dex":  15,
+                      "Con":  10,
+                      "Int":  10,
+                      "Wis":  8,
+                      "Cha":  10
+                  },
+    "DamageVulnerabilities":  [
+
+                              ],
+    "DamageResistances":  [
+
+                          ],
+    "DamageImmunities":  [
+
+                         ],
+    "ConditionImmunities":  [
+
+                            ],
+    "Saves":  [
+
+              ],
+    "Skills":  [
+                   "Stealth +6"
+               ],
+    "Senses":  [
+                   "darkvision 60 ft"
+               ],
+    "Languages":  [
+                      "Common",
+                      "Goblin"
+                  ],
+    "Challenge":  "",
+    "Traits":  [
+                   {
+                       "name":  "Nimble Escape",
+                       "text":  "Take Disengage or Hide as a Bonus Action."
+                   }
+               ],
+    "Actions":  [
+                    {
+                        "name":  "Scimitar (2 attk)",
+                        "text":  "Melee Weapon Attack: +4 to hit, reach 5 ft., one target. Hit: 5 (1d6 + 2) slashing damage; if the attack roll has Advantage, add 1d4 slashing damage."
+                    },
+                    {
+                        "name":  "Shortbow (2 attk)",
+                        "text":  "Ranged Weapon Attack: +4 to hit, range 80/320 ft., one target. Hit: 5 (1d6 + 2) piercing damage; if the attack roll has Advantage, add 1d4 piercing damage."
+                    }
+                ],
+    "BonusActions":  [
+
+                     ],
+    "Reactions":  [
+                      {
+                          "name":  "Redirect Attack",
+                          "text":  "When a creature Clyrm can see makes an attack roll against Clyrm, choose a Small or Medium ally within 5 feet; Clyrm and that ally swap places and the ally becomes the target."
+                      }
+                  ],
+    "LegendaryActions":  [
+
+                         ],
+    "MythicActions":  [
+
+                      ],
+    "Description":  "Skirmisher and nuisance. Throw cloak onto another creature when useful; use decoys and smoke to break line of sight. Surrenders quickly if isolated; carries a cheap knife, travel food, a few coins, and Corvane\u0027s business card.",
+    "Player":  "Clyrm",
+    "Version":  "3.17.1",
+    "ImageURL":  ""
+}

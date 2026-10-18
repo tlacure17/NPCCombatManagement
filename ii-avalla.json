@@ -1,0 +1,105 @@
+{
+    "Source":  "",
+    "Type":  "",
+    "HP":  {
+               "Value":  58,
+               "Notes":  ""
+           },
+    "AC":  {
+               "Value":  10,
+               "Notes":  ""
+           },
+    "InitiativeModifier":  15,
+    "InitiativeAdvantage":  false,
+    "Speed":  [
+
+              ],
+    "Abilities":  {
+                      "Str":  10,
+                      "Dex":  16,
+                      "Con":  14,
+                      "Int":  20,
+                      "Wis":  10,
+                      "Cha":  11
+                  },
+    "DamageVulnerabilities":  [
+
+                              ],
+    "DamageResistances":  [
+
+                          ],
+    "DamageImmunities":  [
+
+                         ],
+    "ConditionImmunities":  [
+
+                            ],
+    "Saves":  [
+
+              ],
+    "Skills":  [
+                   "Arcana +7",
+                   "History +7",
+                   "Investigation +7"
+               ],
+    "Senses":  [
+
+               ],
+    "Languages":  [
+                      "Common"
+                  ],
+    "Challenge":  "",
+    "Traits":  [
+                   {
+                       "name":  "Exploit Opening (3/Day)",
+                       "text":  "When Avalla makes an attack, she has Advantage on the attack roll."
+                   },
+                   {
+                       "name":  "Supernatural Resistance",
+                       "text":  "Advantage on saving throws against powers, spells, and supernatural effects."
+                   }
+               ],
+    "Actions":  [
+                    {
+                        "name":  "Lightning Lash",
+                        "text":  "Melee or Ranged Spell Attack: +7 to hit, reach 5 ft. or range 60 ft., one creature. Hit: 15 (3d6 + 5) lightning; Avalla can move target up to 15 ft."
+                    },
+                    {
+                        "name":  "Iron Terror",
+                        "text":  "1/day; 4th-level spell. 30-foot cone; DC 15 Wisdom save. Fail: 21 (6d6) psychic and frightened of each High Command member for 1 minute (save ends end of turn)."
+                    }
+                ],
+    "BonusActions":  [
+                         {
+                             "name":  "Iron Shakles",
+                             "text":  "1/day; 3rd-level spell, Concentration. Animated iron chains fill a 15-foot square within 60 ft. for 1 minute. Entering/starting turn there: DC 15 Dex save or Restrained; save ends at start of next turn. Restrained creature takes 7 (2d6) bludgeoning at end of each turn."
+                         },
+                         {
+                             "name":  "Iron Ring",
+                             "text":  "2/day. Teleport to/from the Cyst as described in the stat block."
+                         }
+                     ],
+    "Reactions":  [
+                      {
+                          "name":  "Escape Ring",
+                          "text":  "When Avalla isn\u0027t in the Cyst and an ally she can see within 60 ft. drops to 0 HP, teleport to the Cyst with each willing ally within 60 ft. who isn\u0027t incapacitated."
+                      },
+                      {
+                          "name":  "Spellcasting Feedback",
+                          "text":  "When a creature within 60 ft. casts a spell, it taps into Avalla\u0027s mind. It can choose to take 1d6 psychic damage per spell level or let the spell fail; if it fails, the caster\u0027s spell slot is expended and action is wasted."
+                      }
+                  ],
+    "LegendaryActions":  [
+                             {
+                                 "name":  "Promised Storm",
+                                 "text":  "Fires a lightning bolt at creature she can see within 90 ft. Bolt leaps from that target to up to 2 others within 30 ft of the first. DC 15 DEX save, taking 4d10 lightning damage on failed, or half on success."
+                             }
+                         ],
+    "MythicActions":  [
+
+                      ],
+    "Description":  "Battlefield controller and anti-caster. Stay protected behind Erasmus/Cloak. Use Iron Terror to disrupt formation; Spellcasting Feedback punishes the party for trying to answer her with magic. Iron Ring 2/day; Escape Ring triggers at 0 HP if available.",
+    "Player":  "Lady Avalla Deseo",
+    "Version":  "3.17.1",
+    "ImageURL":  ""
+}

@@ -1,0 +1,100 @@
+{
+    "Source":  "",
+    "Type":  "",
+    "HP":  {
+               "Value":  78,
+               "Notes":  ""
+           },
+    "AC":  {
+               "Value":  10,
+               "Notes":  ""
+           },
+    "InitiativeModifier":  18,
+    "InitiativeAdvantage":  false,
+    "Speed":  [
+
+              ],
+    "Abilities":  {
+                      "Str":  10,
+                      "Dex":  18,
+                      "Con":  12,
+                      "Int":  14,
+                      "Wis":  16,
+                      "Cha":  18
+                  },
+    "DamageVulnerabilities":  [
+
+                              ],
+    "DamageResistances":  [
+
+                          ],
+    "DamageImmunities":  [
+
+                         ],
+    "ConditionImmunities":  [
+
+                            ],
+    "Saves":  [
+                  {
+                      "Modifier":  6,
+                      "Ability":  "DEX"
+                  },
+                  {
+                      "Modifier":  6,
+                      "Ability":  "WIS"
+                  },
+                  {
+                      "Modifier":  8,
+                      "Ability":  "CHA"
+                  }
+              ],
+    "Skills":  [
+                   "Insight +8",
+                   "Perception +6",
+                   "Deception +8"
+               ],
+    "Senses":  [
+                   "darkvision 60 ft"
+               ],
+    "Languages":  [
+                      "Common"
+                  ],
+    "Challenge":  "",
+    "Traits":  [
+                   {
+                       "name":  "Threaded Awareness",
+                       "text":  "1/Combat. When Corvane fails a saving throw, roll a d4 and add it to the result."
+                   }
+               ],
+    "Actions":  [
+                    {
+                        "name":  "Blade",
+                        "text":  "+7 to hit, 1d8 + 4 piercing; +1d8 psychic if target is affected by one of Corvane\u0027s spells."
+                    }
+                ],
+    "BonusActions":  [
+                         {
+                             "name":  "Thread Step",
+                             "text":  "2/Day. Teleport 20 feet to a visible space."
+                         }
+                     ],
+    "Reactions":  [
+                      {
+                          "name":  "Interpose Intention",
+                          "text":  "When an ally within 30 feet is hit, reduce the damage by 2d6 + 3."
+                      }
+                  ],
+    "LegendaryActions":  [
+                             {
+                                 "name":  "Quiet Adjustment",
+                                 "text":  "At end of another creature\u0027s turn, Corvane moves up to 10 feet without provoking opportunity attacks."
+                             }
+                         ],
+    "MythicActions":  [
+
+                      ],
+    "Description":  "Protective controller and social wildcard. Stay near the party\u0027s vulnerable member and spend reactions to reduce burst damage. Use control spells to create openings for the Pact rather than chasing damage.",
+    "Player":  "Corvane",
+    "Version":  "3.17.1",
+    "ImageURL":  ""
+}

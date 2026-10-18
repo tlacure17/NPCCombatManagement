@@ -1,0 +1,102 @@
+{
+    "Source":  "",
+    "Type":  "",
+    "HP":  {
+               "Value":  90,
+               "Notes":  ""
+           },
+    "AC":  {
+               "Value":  10,
+               "Notes":  ""
+           },
+    "InitiativeModifier":  16,
+    "InitiativeAdvantage":  false,
+    "Speed":  [
+
+              ],
+    "Abilities":  {
+                      "Str":  20,
+                      "Dex":  10,
+                      "Con":  16,
+                      "Int":  14,
+                      "Wis":  10,
+                      "Cha":  13
+                  },
+    "DamageVulnerabilities":  [
+
+                              ],
+    "DamageResistances":  [
+
+                          ],
+    "DamageImmunities":  [
+
+                         ],
+    "ConditionImmunities":  [
+
+                            ],
+    "Saves":  [
+
+              ],
+    "Skills":  [
+                   "Athletics +7",
+                   "History +4",
+                   "Intimidation +3"
+               ],
+    "Senses":  [
+
+               ],
+    "Languages":  [
+                      "Common"
+                  ],
+    "Challenge":  "",
+    "Traits":  [
+                   {
+                       "name":  "Exploit Opening (3/Day)",
+                       "text":  "When making an attack, has Advantage on the attack roll."
+                   },
+                   {
+                       "name":  "Master Tactic",
+                       "text":  "At the start of combat, Erasmus chooses when he acts in the initiative order after all other creatures have rolled initiative."
+                   }
+               ],
+    "Actions":  [
+                    {
+                        "name":  "Greatsword (2)",
+                        "text":  "Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 12 (2d6 + 5) slashing damage; target has Disadvantage on attack rolls against creatures other than Erasmus until end of its next turn.\n\nOnly 1 attack if using \"I\u0027m Right Here\""
+                    },
+                    {
+                        "name":  "I\u0027m Right Here",
+                        "text":  "A creature Erasmus can see within 5 ft. that can hear him must succeed on DC 15 Wisdom save or use its Reaction, if available, to attack Erasmus. If it attacks, an ally within 30 ft. can make a weapon attack against it (no action required)."
+                    },
+                    {
+                        "name":  "Iron Ring",
+                        "text":  "2/day. Teleport to the Cyst if not in it; if in the Cyst, teleport to a place he has visited."
+                    }
+                ],
+    "BonusActions":  [
+                         {
+                             "name":  "Mark",
+                             "text":  "Choose a creature within 60 ft.; until start of next turn, first time an ally deals damage to marked creature, it takes an extra 3 (1d6) damage."
+                         },
+                         {
+                             "name":  "Reposition",
+                             "text":  "Erasmus and each ally within 60 ft. that can hear him move up to 5 ft. without provoking opportunity attacks."
+                         }
+                     ],
+    "Reactions":  [
+
+                  ],
+    "LegendaryActions":  [
+                             {
+                                 "name":  "Playtime\u0027s Over",
+                                 "text":  "A High Command member within 60 ft of Erasmus that can hear him can use their villain action even if they already used it."
+                             }
+                         ],
+    "MythicActions":  [
+
+                      ],
+    "Description":  "BIP field leader. Protects the Supervisor early, marks a high-value target, and uses the Master Tactic timing to coordinate the Pact. Do not retreat until at least one BIP member has fallen. Iron Ring 2/day.",
+    "Player":  "Lord Erasmus Deseo",
+    "Version":  "3.17.1",
+    "ImageURL":  ""
+}

@@ -1,0 +1,104 @@
+{
+    "Source":  "http://dndroll.wikidot.com/creatures:arcanaloth",
+    "Type":  "",
+    "HP":  {
+               "Value":  104,
+               "Notes":  ""
+           },
+    "AC":  {
+               "Value":  10,
+               "Notes":  ""
+           },
+    "InitiativeModifier":  20,
+    "InitiativeAdvantage":  false,
+    "Speed":  [
+
+              ],
+    "Abilities":  {
+                      "Str":  17,
+                      "Dex":  12,
+                      "Con":  14,
+                      "Int":  20,
+                      "Wis":  16,
+                      "Cha":  17
+                  },
+    "DamageVulnerabilities":  [
+
+                              ],
+    "DamageResistances":  [
+                              "cold",
+                              "fire",
+                              "lightning",
+                              "bludgeoning",
+                              "piercing",
+                              "and slashing from nonmagical attacks"
+                          ],
+    "DamageImmunities":  [
+
+                         ],
+    "ConditionImmunities":  [
+                                "charmed",
+                                "poisoned"
+                            ],
+    "Saves":  [
+                  {
+                      "Modifier":  5,
+                      "Ability":  "DEX"
+                  },
+                  {
+                      "Modifier":  9,
+                      "Ability":  "INT"
+                  },
+                  {
+                      "Modifier":  7,
+                      "Ability":  "WIS"
+                  },
+                  {
+                      "Modifier":  7,
+                      "Ability":  "CHA"
+                  }
+              ],
+    "Skills":  [
+                   "Arcana +13",
+                   "Deception +9",
+                   "Insight +9",
+                   "Perception +7"
+               ],
+    "Senses":  [
+                   "truesight 120 ft"
+               ],
+    "Languages":  [
+                      "all",
+                      "telepathy 120 ft"
+                  ],
+    "Challenge":  "",
+    "Traits":  [
+
+               ],
+    "Actions":  [
+                    {
+                        "name":  "Claws",
+                        "text":  "Melee Weapon Attack: +7 to hit, reach 5 ft., one target. Hit: 8 (2d4 + 3) slashing damage; target makes DC 14 Constitution save, taking 10 (3d6) poison damage on a failed save, or half as much on success."
+                    },
+                    {
+                        "name":  "Teleport",
+                        "text":  "Teleport, along with equipment worn/carried, up to 60 ft. to an unoccupied space it can see."
+                    }
+                ],
+    "BonusActions":  [
+
+                     ],
+    "Reactions":  [
+
+                  ],
+    "LegendaryActions":  [
+
+                         ],
+    "MythicActions":  [
+
+                      ],
+    "Description":  "Primary objective: advance the ritual while maintaining control of the battlefield. Prefer control over raw damage; preserve Dimension Door/Teleport escape options. Phase 1: Slow/Telekinesis. Phase 2: isolate with Forcecage and Banishment. Use Chain Lightning when multiple PCs are exposed or a finishing blow is available. Counterspell key ritual-interrupting magic.",
+    "Player":  "The Supervisor",
+    "Version":  "3.17.1",
+    "ImageURL":  ""
+}

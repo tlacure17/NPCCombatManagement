@@ -68,9 +68,10 @@
 
       <form id="addForm" class="rounded-lg border border-slate-800 bg-slate-900 p-4 space-y-3 lg:col-span-2">
         <h2 class="font-semibold">Add Combatant</h2>
-        <div class="grid grid-cols-1 md:grid-cols-5 gap-2">
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-2">
           <input name="name" required placeholder="Name" class="md:col-span-2 px-3 py-2 rounded bg-slate-800 border border-slate-700" />
           <input name="initiative" required type="number" placeholder="Init" class="px-3 py-2 rounded bg-slate-800 border border-slate-700" />
+          <input name="speed" type="number" min="0" value="30" placeholder="Speed" class="px-3 py-2 rounded bg-slate-800 border border-slate-700" />
           <input name="hpMax" required type="number" placeholder="HP Max" class="px-3 py-2 rounded bg-slate-800 border border-slate-700" />
           <input name="sourceUrl" placeholder="Source URL" class="px-3 py-2 rounded bg-slate-800 border border-slate-700" />
         </div>
